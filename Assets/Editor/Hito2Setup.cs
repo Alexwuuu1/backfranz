@@ -110,7 +110,7 @@ public static class Hito2Setup
         EditorSceneManager.SaveScene(scene, ScenePath);
         EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
         PlayerSettings.companyName = "Grupo 64";
-        PlayerSettings.productName = "Sobreviviendo al Primer Semestre";
+        PlayerSettings.productName = "Backfranz";
         EditorSettings.serializationMode = SerializationMode.ForceText;
         EditorSettings.externalVersionControl = "Visible Meta Files";
 
@@ -127,6 +127,8 @@ public static class Hito2Setup
 
     private static void RunOnce()
     {
+        // Hito 3 owns scene setup; never reopen or rebuild Nivel01 automatically.
+        if (File.Exists("Assets/Scenes/MenuPrincipal.unity")) return;
         try
         {
             if (File.Exists(MarkerPath))
