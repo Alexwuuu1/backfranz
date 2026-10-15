@@ -1,0 +1,2 @@
+Unity 6000.3.16f1: smoke checks PASS. Menu, transformation, options, extras, credits, quit confirmation, scene load, pause/resume and return verified.
+Keyboard, final Windows quit and visual layout require manual review.
