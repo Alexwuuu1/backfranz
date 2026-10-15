@@ -18,7 +18,7 @@ Si la escena no se genera automáticamente, utilizar el menú **Tools > Hito 2 >
 
 ## 3. Crear el repositorio público
 
-Nombre recomendado: `sobreviviendo-primer-semestre`.
+Nombre recomendado: `backfranz`.
 
 Descripción recomendada: `Videojuego 2D de orientación y vida universitaria - Grupo 64`.
 

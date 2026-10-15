@@ -4,7 +4,7 @@
 
 ### Actividades realizadas
 
-- Se definió la idea inicial del videojuego: `Sobreviviendo al Primer Semestre`.
+- Se definió la idea inicial del videojuego: `Backfranz`.
 - Se establecieron el género, la plataforma y el estilo visual.
 - Se preparó el repositorio Git local.
 - Se creó la estructura inicial del proyecto Unity 2D.
@@ -57,3 +57,11 @@
 | Cristopher Iori Lazcano Gutierrez (`Crisshubb`) | Fondo y decoración | `feature/fondo-campus` | Commit de un cambio visual propio |
 | Galilea Alison Llusco Asistiri (`Galileya`) | Tiles y Tilemap | `feature/tilemap-campus` | Commit que modifique el escenario |
 | Alex Joel Quispe Ticona (`lpzealexjoelquispeti-dot`) | Documentación | `feature/documentacion` | Commit que complete README y bitácora |
+
+## 15/10/2026 - Hito 3
+- Nombre definitivo: Backfranz. Repositorio renombrado y configuración de Unity actualizada.
+- Se incorporaron menú principal, opciones, galería, créditos, confirmación de salida y pausa.
+- Transición normal/backrooms después de cinco segundos con sonido procedural.
+- Fuente propia Backfranz Pixel y nuevos fondos basados en las referencias de Galileya.
+- Se preparó la implementación con asistencia de IA para revisión e integración del equipo.
+- Validación automática documentada en Docs/Hito3/VERIFICACION.txt. Pruebas manuales pendientes en PRUEBAS.md.
