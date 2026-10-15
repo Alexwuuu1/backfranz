@@ -1,138 +1,44 @@
-# Sobreviviendo al Primer Semestre
+# Backfranz
 
-Proyecto del Grupo 64 para la evaluación procesual Hito 2 de Programación Gráfica y Multimedia I.
+Videojuego 2D de exploración y terror universitario del Grupo 64. Yamil se enfrenta a una universidad que se transforma en un espacio inspirado en backrooms.
 
-## Descripción
+## Abrir y jugar
+1. Abrir esta carpeta con Unity **6000.3.16f1**.
+2. Abrir `Assets/Scenes/MenuPrincipal.unity` y presionar Play.
+3. A los cinco segundos el campus cambia con un trueno y destellos.
+4. Jugar carga Nivel01. A/D o flechas horizontales mueven al estudiante del prototipo. Escape pausa.
 
-`Sobreviviendo al Primer Semestre` es un videojuego 2D de simulación de vida y aventura ligera. El jugador representa a un estudiante de primer ingreso que explora el campus universitario, conoce sus servicios y aprende a equilibrar estudio, energía y vida social.
+El menú incluye Jugar, Opciones, Extras (galería), Créditos y Salir. En el editor, Salir detiene Play; en la aplicación la cierra. Volumen, pantalla completa y reducción de destellos guardan preferencias locales.
 
-En este hito se presenta la primera base visual y técnica del proyecto: una escena estática de la entrada del campus, organizada para continuar el desarrollo durante el semestre.
+## Estado real
+Menú y pausa implementados. El campus jugable conserva el personaje del Hito 2; Yamil está representado en el nuevo fondo. Sus ciclos de caminar/correr aún requieren integración. No hay guardado de partida, enemigos ni niveles backrooms completos.
 
-## Género
+## Equipo
+| Integrante | GitHub |
+|---|---|
+| Alejandro Villalpando Rojas | Alexwuuu1 |
+| Cristopher Iori Lazcano Gutierrez | Crisshubb |
+| Galilea Alison Llusco Asistiri | Galileya |
+| Alex Joel Quispe Ticona | [lpzealexjoelquispeti-dot](https://github.com/lpzealexjoelquispeti-dot) |
 
-- Simulación de vida.
-- Aventura RPG ligera.
-- Exploración y gestión de recursos en etapas posteriores.
+## Organización
+- Assets/Scenes: MenuPrincipal y Nivel01.
+- Assets/Scripts/UI: navegación, sonido y transición.
+- Assets/Art/UI/Backfranz: fondos, logotipo y fuente propia.
+- Assets/Editor/Hito3Setup.cs: generador reproducible de escenas/UI.
+- Docs/Hito3: pruebas, evidencias e informe técnico.
+- SourceAssets: referencias originales del equipo y generador de tipografía.
 
-## Plataforma objetivo
+Las referencias de Galileya se conservaron. Fondos y logotipo se adaptaron con generación de imágenes asistida por IA; fuente y audio se generan por código. Detalles en Docs/Hito3/ARTE.md.
 
-- PC con Windows.
-- Posible publicación WebGL en hitos posteriores.
+Repositorio: https://github.com/Alexwuuu1/backfranz
+Flujo: ramas individuales -> develop -> main, mediante merge sin squash para conservar autores. Ver Docs/Hito3/ENTREGA.md.
 
-## Estilo visual
+## Evidencias del Hito 3
 
-Pixel art 2D con vista superior. Se utilizan formas y colores sencillos para representar césped, senderos, edificios, árboles, mobiliario y señalización universitaria.
+- [Informe PDF](Docs/Hito3/Backfranz-Hito3.pdf)
+- [Menú principal](Docs/Hito3/Capturas/02-menu-backrooms.png)
+- [Menú de pausa](Docs/Hito3/Capturas/03-pausa.png)
+- [Pruebas y alcance](Docs/Hito3/PRUEBAS.md)
 
-## Idea inicial
-
-El jugador llegará por primera vez a la universidad y deberá aprender a orientarse en el campus. En versiones posteriores podrá hablar con personajes, realizar trámites, asistir a clases y tomar decisiones para equilibrar su rendimiento académico, energía y vida social.
-
-## Tecnologías
-
-- Unity 6000.3.16f1.
-- Unity 2D y Tilemap.
-- Git para control de versiones.
-- GitHub para colaboración.
-
-## Integrantes
-
-| Integrante | Usuario de GitHub | Responsabilidad principal |
-| --- | --- | --- |
-| Alejandro Villalpando Rojas | `Alexwuuu1` | Repositorio, proyecto Unity y estructura inicial |
-| Cristopher Iori Lazcano Gutierrez | `Crisshubb` | Fondo y elementos decorativos |
-| Galilea Alison Llusco Asistiri | `Galileya` | Tiles y escenario con Tilemap |
-| Alex Joel Quispe Ticona | `lpzealexjoelquispeti-dot` | README, bitácora y revisión |
-
-> Los cuatro integrantes ya aparecen como colaboradores. Antes de la entrega, cada integrante debe realizar al menos un commit real desde su propia cuenta de GitHub.
-
-## Estado del proyecto
-
-Prototipo 2D jugable. La escena contiene cámara ortográfica, fondo, una sección del campus creada con tiles, elementos visuales relacionados con la temática y un personaje animado con movimiento horizontal.
-
-## Estructura del proyecto
-
-```text
-Assets/
-├── Art/
-│   ├── Backgrounds/   Fondo original del campus
-│   ├── Characters/    Marcador visual del estudiante
-│   ├── Decorations/   Árboles, banco y señal
-│   ├── Tiles/         Sprites y objetos Tile
-│   └── UI/            Recursos reservados para la interfaz
-├── Editor/            Herramienta reproducible de preparación del hito
-├── Materials/         Materiales futuros
-├── Prefabs/           Prefabs futuros
-└── Scenes/
-    └── Nivel01.unity  Escena inicial evaluable
-
-Packages/              Dependencias de Unity
-ProjectSettings/       Configuración del proyecto
-Docs/                  Guías internas y vista previa
-```
-
-Las carpetas `Library/`, `Temp/`, `Logs/` y `UserSettings/` se generan localmente y están excluidas mediante `.gitignore`.
-
-## Ejecución
-
-1. Clonar o descargar el repositorio.
-2. Abrir Unity Hub.
-3. Seleccionar **Add project from disk**.
-4. Elegir la carpeta raíz del repositorio.
-5. Abrir el proyecto con Unity `6000.3.16f1` o una versión compatible.
-6. Abrir `Assets/Scenes/Nivel01.unity`.
-7. Presionar **Play** para probar la escena y el movimiento del personaje.
-
-Al presionar Play, el personaje se mueve horizontalmente con `A`/`D` o con las flechas izquierda/derecha. Su sprite se anima mientras camina y cambia de orientación según la dirección.
-
-## Escena inicial
-
-La escena `Nivel01` representa la entrada al campus e incluye:
-
-- Cámara ortográfica 2D.
-- Fondo visual.
-- Grid y dos Tilemaps organizados.
-- Césped y senderos construidos con tiles.
-- Edificio principal construido con tiles.
-- Árboles, banco, señal y personaje provisional.
-- Composición visual coherente con la temática universitaria.
-
-![Vista previa de la escena](Docs/preview-campus.png)
-
-## Assets
-
-Todos los gráficos iniciales son originales y se generan dentro del proyecto mediante `Assets/Editor/Hito2Setup.cs`. No se utilizan paquetes gráficos externos.
-
-| Asset | Autoría | Uso dentro del proyecto |
-| --- | --- | --- |
-| `CampusBackground.png` | Grupo 64 | Fondo general de la escena |
-| `GrassTile.png` | Grupo 64 | Suelo del campus |
-| `PathTile.png` | Grupo 64 | Senderos peatonales |
-| `WallTile.png` | Grupo 64 | Paredes del edificio |
-| `RoofTile.png` | Grupo 64 | Techo del edificio |
-| `Tree.png` | Grupo 64 | Decoración del campus |
-| `Bench.png` | Grupo 64 | Mobiliario exterior |
-| `CampusSign.png` | Grupo 64 | Señalización |
-| `Student.png` | Grupo 64 | Personaje provisional |
-
-Uso autorizado únicamente para el proyecto académico del Grupo 64. Si posteriormente se incorporan recursos externos, deberá registrarse su autor, URL y licencia en esta sección.
-
-## Flujo de trabajo
-
-- `main`: versión estable presentada.
-- `develop`: integración del trabajo del equipo.
-- `feature/*`: cambios específicos de cada integrante.
-
-Flujo utilizado:
-
-1. Crear `develop` desde `main`.
-2. Crear una rama `feature/nombre-tarea` desde `develop`.
-3. Realizar cambios y commits descriptivos en la rama feature.
-4. Integrar la rama feature en `develop` mediante merge.
-5. Comprobar el resultado en Unity.
-6. Integrar `develop` en `main` para preparar la entrega estable.
-
-## Documentación adicional
-
-- [Bitácora](BITACORA.md)
-- [Pasos para completar la entrega](Docs/PASOS_PARA_ENTREGA.md)
-- [Guía para la defensa oral](Docs/GUIA_DEFENSA.md)
+Los aportes de los cuatro integrantes están integrados conservando sus commits y autores.
