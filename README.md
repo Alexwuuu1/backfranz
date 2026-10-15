@@ -26,7 +26,7 @@ Menú y pausa implementados. El campus jugable conserva el personaje del Hito 2;
 - Assets/Scripts/UI: navegación, sonido y transición.
 - Assets/Art/UI/Backfranz: fondos, logotipo y fuente propia.
 - Assets/Editor/Hito3Setup.cs: generador reproducible de escenas/UI.
-- Docs/Hito3: pruebas, evidencias y coordinación de entrega.
+- Docs/Hito3: pruebas, evidencias e informe técnico.
 - SourceAssets: referencias originales del equipo y generador de tipografía.
 
 Las referencias de Galileya se conservaron. Fondos y logotipo se adaptaron con generación de imágenes asistida por IA; fuente y audio se generan por código. Detalles en Docs/Hito3/ARTE.md.
@@ -34,8 +34,11 @@ Las referencias de Galileya se conservaron. Fondos y logotipo se adaptaron con g
 Repositorio: https://github.com/Alexwuuu1/backfranz
 Flujo: ramas individuales -> develop -> main, mediante merge sin squash para conservar autores. Ver Docs/Hito3/ENTREGA.md.
 
-## Aporte de Alex Joel
+## Evidencias del Hito 3
 
-Responsable: **Alex Joel Quispe Ticona**, cuenta [lpzealexjoelquispeti-dot](https://github.com/lpzealexjoelquispeti-dot).
+- [Informe PDF](Docs/Hito3/Backfranz-Hito3.pdf)
+- [Menú principal](Docs/Hito3/Capturas/02-menu-backrooms.png)
+- [Menú de pausa](Docs/Hito3/Capturas/03-pausa.png)
+- [Pruebas y alcance](Docs/Hito3/PRUEBAS.md)
 
-Este aporte reúne documentación, verificación automática, capturas e informe PDF en la rama `feature/hito3-alexjoel`. Se integra mediante PR hacia `develop`. La implementación completa del menú depende de los aportes de los demás integrantes.
+Los aportes de los cuatro integrantes están integrados conservando sus commits y autores.

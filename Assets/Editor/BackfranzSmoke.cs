@@ -17,6 +17,13 @@ public static class BackfranzSmoke
         SessionState.SetBool("Backfranz.Smoke",true);
         EditorApplication.isPlaying=true;
     }
+    // Validate the scenes actually committed by the team without rebuilding them.
+    public static void RunSaved()
+    {
+        UnityEditor.SceneManagement.EditorSceneManager.OpenScene("Assets/Scenes/MenuPrincipal.unity");
+        SessionState.SetBool("Backfranz.Smoke",true);
+        EditorApplication.isPlaying=true;
+    }
     static void Changed(PlayModeStateChange change)
     {
         if(!SessionState.GetBool("Backfranz.Smoke",false))return;
