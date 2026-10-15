@@ -25,6 +25,7 @@ public sealed class PlayerMovement2D : MonoBehaviour
 
     private void Update()
     {
+        if (Time.timeScale == 0f) { horizontalInput = 0f; return; }
         horizontalInput = Input.GetAxisRaw("Horizontal");
 
         if (horizontalInput != 0f)
