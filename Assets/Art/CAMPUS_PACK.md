@@ -44,7 +44,7 @@ Este archivo registra el aporte visual preparado en la rama `feature/fondo-campu
 - El fondo y el personaje fueron creados específicamente para el proyecto con apoyo de OpenAI Image Generation y posteriormente adaptados a las dimensiones exactas del juego.
 - Los tiles y las decoraciones fueron reconstruidos píxel a píxel con una paleta limitada para asegurar tamaños exactos y compatibilidad con Tilemap.
 - No se utilizó ningún paquete gráfico externo ni se copiaron assets de otros videojuegos.
-- Uso autorizado para el proyecto académico `Sobreviviendo al Primer Semestre`, Grupo 64.
+- Uso autorizado para el proyecto académico `Backfranz`, Grupo 64.
 
 ## Integración sugerida
 
