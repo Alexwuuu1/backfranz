@@ -1,0 +1,551 @@
+[
+  {
+    "source": "SourceAssets/Backfranz/Editables/floor-clean.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/floor-clean.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/floor-dark.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/floor-dark.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/floor-classroom.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/floor-classroom.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/floor-carpet.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/floor-carpet.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/wall-clean.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/wall-clean.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/wall-dark.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/wall-dark.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/solid.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/solid.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/reception-desk.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/reception-desk.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/desk.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/desk.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/chair.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/chair.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/bookshelf.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/bookshelf.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/lockers.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/lockers.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/vending.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/vending.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/plant.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/plant.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/elevator.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/elevator.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/exit.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/exit.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/note.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/note.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/card.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/card.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/switch.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/switch.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/switch-on.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/switch-on.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/gate.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/gate.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/lamp.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/lamp.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/poster.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/poster.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/computer.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/computer.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/yamil.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/yamil-00.png",
+      "Assets/Resources/Backfranz/Art/yamil-01.png",
+      "Assets/Resources/Backfranz/Art/yamil-02.png",
+      "Assets/Resources/Backfranz/Art/yamil-03.png",
+      "Assets/Resources/Backfranz/Art/yamil-04.png",
+      "Assets/Resources/Backfranz/Art/yamil-05.png",
+      "Assets/Resources/Backfranz/Art/yamil-06.png",
+      "Assets/Resources/Backfranz/Art/yamil-07.png",
+      "Assets/Resources/Backfranz/Art/yamil-08.png",
+      "Assets/Resources/Backfranz/Art/yamil-09.png",
+      "Assets/Resources/Backfranz/Art/yamil-10.png",
+      "Assets/Resources/Backfranz/Art/yamil-11.png",
+      "Assets/Resources/Backfranz/Art/yamil-12.png",
+      "Assets/Resources/Backfranz/Art/yamil-13.png",
+      "Assets/Resources/Backfranz/Art/yamil-14.png",
+      "Assets/Resources/Backfranz/Art/yamil-15.png"
+    ],
+    "layers": 3,
+    "frames": 16
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/shadow.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/shadow-00.png",
+      "Assets/Resources/Backfranz/Art/shadow-01.png",
+      "Assets/Resources/Backfranz/Art/shadow-02.png",
+      "Assets/Resources/Backfranz/Art/shadow-03.png"
+    ],
+    "layers": 3,
+    "frames": 4
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/panel.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/panel.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/button.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/button.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/button-gold.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/button-gold.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/arrow-up.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/arrow-up.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/interact.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/interact.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/pause.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/pause.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/home.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/home.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/check.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/check.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/vignette.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/vignette.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/lightpool.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/lightpool.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Backgrounds/CampusBackground.ase",
+    "exports": [
+      "Assets/Art/Backgrounds/CampusBackground.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Backgrounds/CampusMapHorizontal_256x128.ase",
+    "exports": [
+      "Assets/Art/Backgrounds/CampusMapHorizontal_256x128.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Characters/PlayerWalkRight.ase",
+    "exports": [
+      "Assets/Art/Characters/PlayerWalkRight.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Characters/Student.ase",
+    "exports": [
+      "Assets/Art/Characters/Student.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Characters/StudentCampus_24x32.ase",
+    "exports": [
+      "Assets/Art/Characters/StudentCampus_24x32.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Decorations/Bench.ase",
+    "exports": [
+      "Assets/Art/Decorations/Bench.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Decorations/CampusSign.ase",
+    "exports": [
+      "Assets/Art/Decorations/CampusSign.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Decorations/Tree.ase",
+    "exports": [
+      "Assets/Art/Decorations/Tree.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Tiles/GrassTile.ase",
+    "exports": [
+      "Assets/Art/Tiles/GrassTile.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Tiles/PathTile.ase",
+    "exports": [
+      "Assets/Art/Tiles/PathTile.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Tiles/RoofTile.ase",
+    "exports": [
+      "Assets/Art/Tiles/RoofTile.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Tiles/WallTile.ase",
+    "exports": [
+      "Assets/Art/Tiles/WallTile.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/UI/Backfranz/backfranz-logo.ase",
+    "exports": [
+      "Assets/Art/UI/Backfranz/backfranz-logo.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/UI/Backfranz/campus-backrooms.ase",
+    "exports": [
+      "Assets/Art/UI/Backfranz/campus-backrooms.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/UI/Backfranz/campus-normal.ase",
+    "exports": [
+      "Assets/Art/UI/Backfranz/campus-normal.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Tiles/CampusPack/CampusCurb16.ase",
+    "exports": [
+      "Assets/Art/Tiles/CampusPack/CampusCurb16.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Tiles/CampusPack/CampusDirt16.ase",
+    "exports": [
+      "Assets/Art/Tiles/CampusPack/CampusDirt16.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Tiles/CampusPack/CampusFlowerbed16.ase",
+    "exports": [
+      "Assets/Art/Tiles/CampusPack/CampusFlowerbed16.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Tiles/CampusPack/CampusGrass16.ase",
+    "exports": [
+      "Assets/Art/Tiles/CampusPack/CampusGrass16.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Tiles/CampusPack/CampusPath16.ase",
+    "exports": [
+      "Assets/Art/Tiles/CampusPack/CampusPath16.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Tiles/CampusPack/CampusRoof16.ase",
+    "exports": [
+      "Assets/Art/Tiles/CampusPack/CampusRoof16.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Tiles/CampusPack/CampusWall16.ase",
+    "exports": [
+      "Assets/Art/Tiles/CampusPack/CampusWall16.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Tiles/CampusPack/CampusWindow16.ase",
+    "exports": [
+      "Assets/Art/Tiles/CampusPack/CampusWindow16.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Decorations/CampusPack/BenchCampus_24x12.ase",
+    "exports": [
+      "Assets/Art/Decorations/CampusPack/BenchCampus_24x12.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Decorations/CampusPack/KioskCampus_16x24.ase",
+    "exports": [
+      "Assets/Art/Decorations/CampusPack/KioskCampus_16x24.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Decorations/CampusPack/LampCampus_8x24.ase",
+    "exports": [
+      "Assets/Art/Decorations/CampusPack/LampCampus_8x24.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  },
+  {
+    "source": "SourceAssets/Backfranz/Importados/Decorations/CampusPack/TreeCampus_16x24.ase",
+    "exports": [
+      "Assets/Art/Decorations/CampusPack/TreeCampus_16x24.png"
+    ],
+    "layers": 1,
+    "frames": 1,
+    "origin": "Existing flattened raster, preserved without invented layers"
+  }
+]
