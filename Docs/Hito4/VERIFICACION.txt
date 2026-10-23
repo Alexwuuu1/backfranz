@@ -1,0 +1,10 @@
+Verificación de Backfranz - niveles y arte - 22/10/2026
+Unity 6000.3.16f1.
+BackfranzPlayableSmoke.Run: 40 comprobaciones aprobadas, salida 0, después del rediseño gráfico y geométrico.
+Se verifican inicio, sesión única, movimiento básico, límites, paredes, rutas por las puertas de cada zona, acceso a tarjeta, apunte y ascensores, recogida única, interacción bloqueada al pausar, bloqueo sin tarjeta, energía y reja, visión bloqueada por pared, contacto con sombra, derrota, reinicio completo, tres apuntes y victoria, retorno al menú con tiempo restablecido y conexión de las cuatro direcciones táctiles.
+Las rutas se comprueban mediante búsqueda en la geometría de colisiones. El flujo mueve al jugador entre puntos para comprobar los estados; no equivale a una partida manual completa ni mide la dificultad.
+Arte: 63 archivos ASE y 81 fotogramas exportados validados mediante un lector binario separado. Capas, cabeceras y celdas comprimidas válidas; PNG y ASE coinciden en píxeles visibles y transparencia. Los nuevos gráficos tienen tres capas. Los gráficos anteriores importados conservan una sola capa. Apertura en Aseprite/LibreSprite aún no comprobada en esta máquina.
+Capturas: ejecución en Unity, 1600x900. Recepción, pasillos, biblioteca, derrota y victoria revisadas visualmente. La imagen 06 es una previsualización de los controles táctiles en el editor, no evidencia de ejecución Android.
+Pendientes: recorrido manual completo, balance de persecución, revisión del arte por el equipo, ergonomía táctil, resoluciones de dispositivos, exportación y prueba del APK. Android Build Support instalado para Unity 6000.3.16f1, con OpenJDK 17.0.18, SDK 36 y NDK r27c. BackfranzExport.VerifyAndroid terminó con salida 0 y BACKFRANZ_ANDROID_SUPPORT_OK. Java y adb ejecutados correctamente. El APK y su prueba en dispositivo siguen pendientes.
+
+Windows x64: BackfranzExport.Windows, Build Finished, Result: Success; salida del editor 0. Ejecutable actualizado con los niveles y gráficos finales. Falta prueba manual del ejecutable nuevo.
