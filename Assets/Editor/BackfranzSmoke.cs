@@ -58,7 +58,7 @@ public static class BackfranzSmoke
                 ui.Resume();Check(Time.timeScale==1,"Resume restores time");ui.Pause();ui.MainMenu();step++;
             } else if(step==5 && SceneManager.GetActiveScene().name=="MenuPrincipal" && t>14) {
                 Check(Time.timeScale==1,"Returning to menu resets time");
-                File.WriteAllText("Docs/Hito3/VERIFICACION.txt","Unity 6000.3.16f1: smoke checks PASS. Menu, transformation, options, extras, credits, quit confirmation, scene load, pause/resume and return verified.\nKeyboard, final Windows quit and visual layout require manual review.\n");
+                File.WriteAllText("Docs/Hito3/VERIFICACION.txt","Unity "+Application.unityVersion+": smoke checks PASS. Menu, transformation, options, extras, credits, quit confirmation, scene load, pause/resume and return verified.\nKeyboard, final Windows quit and visual layout require manual review.\n");
                 Finish(0);
             }
         }catch(Exception e){Debug.LogException(e);Finish(1);}

@@ -38,7 +38,16 @@ public static class BackfranzPlayableSmoke
                 s.Player.transform.position=s.World.Cell(0,15,13);s.SendMessage("LateUpdate");Capture("01-recepcion.png");
                 var directions=UnityEngine.Object.FindObjectsByType<TouchDirection>(FindObjectsInactive.Include,FindObjectsSortMode.None);
                 Check(directions.Length==4,"Four graphical touch directions wired");
-                var touchRoot=directions[0].transform.parent.gameObject;touchRoot.SetActive(true);Capture("06-controles-previa-editor.png");touchRoot.SetActive(false);
+                var touchRoot=directions[0].transform.parent.gameObject;touchRoot.SetActive(true);Capture("06-controles-previa-editor.png");
+                var right=Array.Find(directions,d=>d.direction==Vector2.right);
+                var up=Array.Find(directions,d=>d.direction==Vector2.up);
+                var first=new UnityEngine.EventSystems.PointerEventData(UnityEngine.EventSystems.EventSystem.current){pointerId=101};
+                var second=new UnityEngine.EventSystems.PointerEventData(UnityEngine.EventSystems.EventSystem.current){pointerId=102};
+                right.OnPointerDown(first);up.OnPointerDown(second);
+                Check(Vector2.Distance(s.Player.TouchInput,new Vector2(1,1).normalized)<.001f,"Multitouch diagonal normalized");
+                up.OnPointerUp(second);Check(s.Player.TouchInput==Vector2.right,"Releasing one finger preserves another");
+                up.OnPointerDown(second);right.OnPointerUp(first);Check(s.Player.TouchInput==Vector2.up,"Reverse finger release preserves movement");
+                touchRoot.SetActive(false);Check(s.Player.TouchInput==Vector2.zero,"Hiding controls releases all fingers");
                 Pickup(s,s.World.Door(0));Check(s.Room==0,"Elevator locked before note");
                 s.Player.transform.position=s.World.Notes[0];Time.timeScale=0;s.Interact();Check(s.Collected==0,"Paused collection blocked");Time.timeScale=1;
                 s.Interact();s.Interact();Check(s.Collected==1,"Unique note pickup");

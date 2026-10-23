@@ -8,3 +8,10 @@ Capturas: ejecución en Unity, 1600x900. Recepción, pasillos, biblioteca, derro
 Pendientes: recorrido manual completo, balance de persecución, revisión del arte por el equipo, ergonomía táctil, resoluciones de dispositivos, exportación y prueba del APK. Android Build Support instalado para Unity 6000.3.16f1, con OpenJDK 17.0.18, SDK 36 y NDK r27c. BackfranzExport.VerifyAndroid terminó con salida 0 y BACKFRANZ_ANDROID_SUPPORT_OK. Java y adb ejecutados correctamente. El APK y su prueba en dispositivo siguen pendientes.
 
 Windows x64: BackfranzExport.Windows, Build Finished, Result: Success; salida del editor 0. Ejecutable actualizado con los niveles y gráficos finales. Falta prueba manual del ejecutable nuevo.
+
+## Integración verificada el 22/10/2026
+Las cuatro ramas feature/hito3-* se integraron conservando commits y autores.
+Validación local con Unity 6000.3.11f1: 44 comprobaciones de partida aprobadas y 14 comprobaciones de menú/pausa aprobadas. Se corrigió el control multitáctil para mantener la dirección del dedo que sigue pulsado y normalizar diagonales.
+Arte: 63 archivos ASE válidos y 81 fotogramas coincidentes con sus PNG.
+El editor registró una excepción interna de UnityEditor.Search.SearchDatabase durante la indexación; las pruebas de juego terminaron correctamente.
+La versión declarada del proyecto sigue siendo 6000.3.16f1. Su instalación con módulos Windows IL2CPP y Android fue iniciada, pero su finalización no está verificada. No se ha generado un ejecutable ni APK nuevo en esta revisión. Pendientes: recorrido manual y pruebas en Android real.

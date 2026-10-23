@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -8,18 +9,22 @@ namespace Backfranz.Playable
     {
         public CampusWorld world;
         public SessionFlow session;
-        Vector2 touchAxis;
+        readonly Dictionary<int, Vector2> touches = new Dictionary<int, Vector2>();
+        public Vector2 TouchInput {
+            get { Vector2 axis = Vector2.zero; foreach (var direction in touches.Values) axis += direction; return Vector2.ClampMagnitude(axis, 1); }
+        }
         float animationTime;
         SpriteRenderer view;
         public Vector2 Facing { get; private set; } = Vector2.down;
         public Vector2 Position => transform.position;
         void Start() { view = GetComponent<SpriteRenderer>(); }
-        public void TouchAxis(Vector2 value) { touchAxis = value; }
+        public void PressDirection(int pointerId, Vector2 value) { touches[pointerId] = value; }
+        public void ReleaseDirection(int pointerId) { touches.Remove(pointerId); }
         public void Interact() { if (Time.timeScale > 0 && !session.Finished) session.Interact(); }
         void Update()
         {
-            if (Time.timeScale == 0 || session.Finished) { touchAxis = Vector2.zero; return; }
-            var axis = Vector2.ClampMagnitude(new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")) + touchAxis, 1);
+            if (Time.timeScale == 0 || session.Finished) { touches.Clear(); return; }
+            var axis = Vector2.ClampMagnitude(new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")) + TouchInput, 1);
             if (Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.Space)) Interact();
             Move(axis, Time.deltaTime);
             if (axis.sqrMagnitude > .01f) Facing = axis;
@@ -39,17 +44,17 @@ namespace Backfranz.Playable
                 transform.position = p;
             }
         }
-        void OnApplicationFocus(bool focused) { if (!focused) touchAxis = Vector2.zero; }
-        void OnDisable() { touchAxis = Vector2.zero; }
+        void OnApplicationFocus(bool focused) { if (!focused) touches.Clear(); }
+        void OnDisable() { touches.Clear(); }
     }
 
     public sealed class TouchDirection : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
         public ExplorerMotor motor;
         public Vector2 direction;
-        int pointer = int.MinValue;
-        public void OnPointerDown(PointerEventData data) { pointer = data.pointerId; motor.TouchAxis(direction); }
-        public void OnPointerUp(PointerEventData data) { if (pointer == data.pointerId) { motor.TouchAxis(Vector2.zero); pointer = int.MinValue; } }
-        void OnDisable() { if (motor) motor.TouchAxis(Vector2.zero); }
+        readonly HashSet<int> pointers = new HashSet<int>();
+        public void OnPointerDown(PointerEventData data) { pointers.Add(data.pointerId); motor.PressDirection(data.pointerId, direction); }
+        public void OnPointerUp(PointerEventData data) { if (pointers.Remove(data.pointerId)) motor.ReleaseDirection(data.pointerId); }
+        void OnDisable() { if (motor) foreach (int pointer in pointers) motor.ReleaseDirection(pointer); pointers.Clear(); }
     }
 }
