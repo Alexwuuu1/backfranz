@@ -1,59 +1,47 @@
-"""Fuente propia Backfranz Pixel. Ejecutar con Python + fontTools; no descarga recursos."""
+"""Build the original Backfranz Pixel font from the game's bitmap alphabet."""
 from pathlib import Path
 from fontTools.fontBuilder import FontBuilder
 from fontTools.pens.ttGlyphPen import TTGlyphPen
-import unicodedata
+from Backfranz.letras import glyph, patterns
 
-patterns = {
-'A':'01110/10001/10001/11111/10001/10001/10001', 'B':'11110/10001/10001/11110/10001/10001/11110',
-'C':'01111/10000/10000/10000/10000/10000/01111', 'D':'11110/10001/10001/10001/10001/10001/11110',
-'E':'11111/10000/10000/11110/10000/10000/11111', 'F':'11111/10000/10000/11110/10000/10000/10000',
-'G':'01111/10000/10000/10111/10001/10001/01111', 'H':'10001/10001/10001/11111/10001/10001/10001',
-'I':'11111/00100/00100/00100/00100/00100/11111', 'J':'00111/00010/00010/00010/10010/10010/01100',
-'K':'10001/10010/10100/11000/10100/10010/10001', 'L':'10000/10000/10000/10000/10000/10000/11111',
-'M':'10001/11011/10101/10101/10001/10001/10001', 'N':'10001/11001/10101/10011/10001/10001/10001',
-'O':'01110/10001/10001/10001/10001/10001/01110', 'P':'11110/10001/10001/11110/10000/10000/10000',
-'Q':'01110/10001/10001/10001/10101/10010/01101', 'R':'11110/10001/10001/11110/10100/10010/10001',
-'S':'01111/10000/10000/01110/00001/00001/11110', 'T':'11111/00100/00100/00100/00100/00100/00100',
-'U':'10001/10001/10001/10001/10001/10001/01110', 'V':'10001/10001/10001/10001/10001/01010/00100',
-'W':'10001/10001/10001/10101/10101/11011/10001', 'X':'10001/10001/01010/00100/01010/10001/10001',
-'Y':'10001/10001/01010/00100/00100/00100/00100', 'Z':'11111/00001/00010/00100/01000/10000/11111',
-'0':'01110/10001/10011/10101/11001/10001/01110','1':'00100/01100/00100/00100/00100/00100/01110',
-'2':'01110/10001/00001/00010/00100/01000/11111','3':'11110/00001/00001/01110/00001/00001/11110',
-'4':'00010/00110/01010/10010/11111/00010/00010','5':'11111/10000/10000/11110/00001/00001/11110',
-'6':'01110/10000/10000/11110/10001/10001/01110','7':'11111/00001/00010/00100/01000/01000/01000',
-'8':'01110/10001/10001/01110/10001/10001/01110','9':'01110/10001/10001/01111/00001/00001/01110',
-'.':'00000/00000/00000/00000/00000/00110/00110', ',':'00000/00000/00000/00000/00110/00110/00100',
-':':'00000/00110/00110/00000/00110/00110/00000',';':'00000/00110/00110/00000/00110/00110/00100',
-'!':'00100/00100/00100/00100/00100/00000/00100','?':'01110/10001/00001/00010/00100/00000/00100',
-'-':'00000/00000/00000/11111/00000/00000/00000','/':'00001/00001/00010/00100/01000/10000/10000',
-'(':'00010/00100/01000/01000/01000/00100/00010',')':'01000/00100/00010/00010/00010/00100/01000',
-'[':'01110/01000/01000/01000/01000/01000/01110',']':'01110/00010/00010/00010/00010/00010/01110',
-'+':'00000/00100/00100/11111/00100/00100/00000','·':'00000/00000/00000/00100/00000/00000/00000',
-' ':'00000/00000/00000/00000/00000/00000/00000',"'":'00100/00100/00000/00000/00000/00000/00000',
-}
-chars=''.join(chr(i) for i in range(32,127))+'áéíóúüñÁÉÍÓÚÜÑ¿¡·—→©'
-glyphs={}; cmap={}; metrics={}
-def square(p,x,y):
-    p.moveTo((x,y));p.lineTo((x,y+100));p.lineTo((x+100,y+100));p.lineTo((x+100,y));p.closePath()
-for ch in chars:
-    name='uni%04X'%ord(ch);cmap[ord(ch)]=name
-    dec=unicodedata.normalize('NFD',ch.upper());base=dec[0]
-    pat=patterns.get(base,patterns.get(ch,patterns['?'])).split('/')
-    if ch=='¿':pat=[r[::-1] for r in patterns['?'].split('/')[::-1]]
-    if ch=='¡':pat=patterns['!'].split('/')[::-1]
-    p=TTGlyphPen(None)
-    for y,row in enumerate(pat):
-        for x,v in enumerate(row):
-            if v=='1':square(p,x*100+50,(6-y)*100)
-    if '\u0301' in dec: square(p,250,800);square(p,350,900)
-    if '\u0303' in dec:
-        for x,y in [(1,8),(2,9),(3,8)]:square(p,x*100+50,y*100)
-    if '\u0308' in dec:square(p,150,800);square(p,350,800)
-    glyphs[name]=p.glyph();metrics[name]=(650,50)
-p=TTGlyphPen(None);glyphs['.notdef']=p.glyph();metrics['.notdef']=(650,0)
-fb=FontBuilder(1000,isTTF=True);fb.setupGlyphOrder(['.notdef']+list(glyphs.keys())[:-1]);fb.setupCharacterMap(cmap)
-fb.setupGlyf(glyphs);fb.setupHorizontalMetrics(metrics);fb.setupHorizontalHeader(ascent=1000,descent=-200)
-fb.setupNameTable({'familyName':'Backfranz Pixel','styleName':'Regular','uniqueFontIdentifier':'Grupo64-BackfranzPixel-1','fullName':'Backfranz Pixel','psName':'BackfranzPixel-Regular'})
-fb.setupOS2(sTypoAscender=1000,sTypoDescender=-200,usWinAscent=1000,usWinDescent=200);fb.setupPost();fb.setupMaxp()
-out=Path(__file__).resolve().parents[1]/'Assets/Art/UI/Backfranz/BackfranzPixel.ttf';fb.save(str(out));print(out)
+characters = sorted(set(patterns) | set('áéíóúüñÁÉÍÓÚÜÑ¿¡'))
+glyphs = {'.notdef': TTGlyphPen(None).glyph()}
+metrics = {'.notdef': (500, 0)}
+cmap = {}
+
+
+def square(pen, x, y):
+    pen.moveTo((x, y))
+    pen.lineTo((x, y+100))
+    pen.lineTo((x+100, y+100))
+    pen.lineTo((x+100, y))
+    pen.closePath()
+
+
+for character in characters:
+    name = 'uni%04X' % ord(character)
+    cmap[ord(character)] = name
+    pen = TTGlyphPen(None)
+    rows = glyph(character)
+    descender = 2 if character in 'gjpqy' else 0
+    for y, row in enumerate(rows):
+        for x, pixel in enumerate(row):
+            if pixel == '1':
+                square(pen, x*100+40, (9-y-descender)*100)
+    glyphs[name] = pen.glyph()
+    metrics[name] = (len(rows[0])*100 + 130, 40 if character != ' ' else 0)
+
+font = FontBuilder(1000,isTTF=True)
+font.setupGlyphOrder(list(glyphs))
+font.setupCharacterMap(cmap)
+font.setupGlyf(glyphs)
+font.setupHorizontalMetrics(metrics)
+font.setupHorizontalHeader(ascent=1020,descent=-240)
+font.setupNameTable({'familyName':'Backfranz Pixel','styleName':'Regular','uniqueFontIdentifier':'Grupo64-BackfranzPixel-2',
+                     'fullName':'Backfranz Pixel','psName':'BackfranzPixel-Regular'})
+font.setupOS2(sTypoAscender=1020,sTypoDescender=-240,usWinAscent=1020,usWinDescent=240)
+font.setupPost()
+font.setupMaxp()
+path=Path(__file__).resolve().parents[1]/'Assets/Art/UI/Backfranz/BackfranzPixel.ttf'
+font.save(str(path))
+print(path)
