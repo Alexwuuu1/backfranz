@@ -1,37 +1,131 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
+using Backfranz.Playable;
 
-// Cristopher: procedural original UI sounds, no external audio dependencies.
 public sealed class BackfranzAudio : MonoBehaviour
 {
-    private AudioSource effects, ambience;
-    private AudioClip click, thunder, hum;
+    internal const string ClipFolder = "Backfranz/Audio/";
+    readonly Dictionary<string,AudioClip> clips = new Dictionary<string,AudioClip>();
+    readonly System.Random variation = new System.Random();
+    const int StepVariants = 5;
+    AudioSource effects, footsteps, ambience, music;
+    int stepVariant = -1;
+    [SerializeField] AudioClip footstepClip, doorClip, liftClip, scannerClip, universityMusic, horrorMusic;
+    public AudioMixerGroup AmbientGroup => ambience.outputAudioMixerGroup;
+
     void Awake()
     {
-        effects = gameObject.AddComponent<AudioSource>();
-        ambience = gameObject.AddComponent<AudioSource>();
-        effects.ignoreListenerPause = ambience.ignoreListenerPause = true;
-        effects.playOnAwake = ambience.playOnAwake = false;
-        click = Make("Seleccion", .09f, false);
-        thunder = Make("Trueno", 2.4f, true);
-        int rate = 22050;
-        float[] data = new float[rate * 2];
-        for (int i=0;i<data.Length;i++) { float t=i/(float)rate; data[i]=.06f*Mathf.Sin(2*Mathf.PI*60*t)+.025f*Mathf.Sin(2*Mathf.PI*120*t); }
-        hum=AudioClip.Create("Fluorescentes",data.Length,1,rate,false); hum.SetData(data,0);
-        ambience.clip=hum; ambience.loop=true;
+        var mixer = Resources.Load<AudioMixer>("Backfranz/MezclaBackfranz");
+        effects = CreateSource(mixer,"Efectos");
+        footsteps = CreateSource(mixer,"Pasos");
+        ambience = CreateSource(mixer,"Ambiente");
+        music = CreateSource(mixer,"Música");
+        music.loop = true;
     }
-    AudioClip Make(string name, float duration, bool noise)
+
+    AudioSource CreateSource(AudioMixer mixer,string groupName)
     {
-        const int rate=22050;
-        float[] data=new float[(int)(rate*duration)];
-        var random=new System.Random(64); float low=0;
-        for(int i=0;i<data.Length;i++) {
-            float t=i/(float)rate, envelope=Mathf.Min(1,t/.01f)*Mathf.Pow(1-t/duration,2);
-            low=Mathf.Lerp(low,(float)random.NextDouble()*2-1,.07f);
-            data[i]=noise ? envelope*(low*.8f+Mathf.Sin(t*190)*.1f) : envelope*Mathf.Sin(2*Mathf.PI*660*t)*.12f;
-        }
-        var clip=AudioClip.Create(name,data.Length,1,rate,false);clip.SetData(data,0);return clip;
+        var source = gameObject.AddComponent<AudioSource>();
+        source.ignoreListenerPause = true;
+        source.playOnAwake = false;
+        if(mixer)
+            source.outputAudioMixerGroup = Array.Find(mixer.FindMatchingGroups(groupName),group=>group.name==groupName);
+        return source;
     }
-    public void Click() { effects.PlayOneShot(click); }
-    public void Thunder() { effects.PlayOneShot(thunder); ambience.Play(); }
-    void OnDestroy() { Destroy(click); Destroy(thunder); Destroy(hum); }
+
+    void Play(AudioSource output,string key,float volume,AudioClip replacement=null)
+    {
+        if(replacement)
+        {
+            output.PlayOneShot(replacement,volume);
+            return;
+        }
+        var clip = Clip(key);
+        if(clip) output.PlayOneShot(clip,volume);
+    }
+
+    AudioClip Clip(string key)
+    {
+        if(!clips.TryGetValue(key,out var clip))
+        {
+            clip = Resources.Load<AudioClip>(ClipFolder+key);
+            clips.Add(key,clip);
+            if(!clip) Debug.LogWarning("Falta el sonido de Backfranz: "+key,this);
+        }
+        return clip;
+    }
+
+    public void Click() => Play(effects,"ui-mover",.68f);
+    public void Back() => Play(effects,"ui-volver",.67f);
+    public void Confirm() => Play(effects,"ui-confirmar",.61f);
+    public void Thunder() => Play(effects,"descenso-umbral",.8f);
+    public void DistantKnock() => Play(ambience,"golpe-tras-muro",.65f);
+    public void ShadowWarning() => Play(ambience,"sombra-alerta",.86f);
+    public void ShadowCaught() => Play(effects,"sombra-retorno",.82f);
+    public void Footstep() => Footstep(SurfaceSound.Baldosa);
+
+    public void Footstep(SurfaceSound surface, bool running=false)
+    {
+        string material = surface switch
+        {
+            SurfaceSound.Adoquin => "adoquin",
+            SurfaceSound.Madera => "madera",
+            SurfaceSound.Metal => "metal",
+            SurfaceSound.Alfombra => "alfombra",
+            _ => "baldosa"
+        };
+        int next = variation.Next(stepVariant < 0 ? StepVariants : StepVariants-1);
+        if(stepVariant >= 0 && next >= stepVariant) next++;
+        stepVariant = next;
+        footsteps.pitch = (running ? 1.04f : .97f)+(float)variation.NextDouble()*.08f;
+        Play(footsteps,"paso-"+material+"-"+(stepVariant+1),running ? .78f : .61f,footstepClip);
+    }
+
+    public void Door() => Door(false);
+    public void Door(bool heavy) => Play(effects,heavy?"puerta-metal":"puerta-vidrio",.72f,doorClip);
+    public void Latch() => Play(effects,"cerrojo",.79f);
+    public void Lift() => Play(effects,"ascensor-campana",.75f,liftClip);
+    public void LiftMotor() => Play(ambience,"ascensor-motor",.60f);
+    public void LiftDoors(bool opening) => Play(effects,opening?"ascensor-abre":"ascensor-cierra",.76f);
+    public void WoodDoor() => Play(effects,"puerta-madera",.70f,doorClip);
+    public void Scanner() => Play(effects,"lector-escaneo",.72f,scannerClip);
+    public void ScanResult(bool granted) => Play(effects,granted?"lector-permitido":"lector-rechazado",.75f);
+    public void ToggleSwitch() => Play(effects,"tablero-interruptor",.72f);
+    public void Playback() => Play(effects,"archivo-reproduccion",.75f);
+    public void PickUp() => Play(effects,"objeto-recoger",.68f);
+    public void MechanismReleased() => Play(effects,"mecanismo-liberado",.7f);
+    public void Plate(bool correct) => Play(effects,correct?"placa-paso":"placa-interferencia",.75f);
+    public void Dialogue(bool yamil) => Play(effects,yamil?"dialogo-yamil":"dialogo-persona",.39f);
+    public void Journal(bool opening) => Play(effects,opening?"diario-abrir":"diario-cerrar",.60f);
+    public void SaveConfirmation() => Play(effects,"partida-guardada",.65f);
+    public void Gathered() => Play(effects,"rescate-reencuentro",.63f);
+
+    public void SetTitleMusic() => SetMusic(Clip("musica-menu"),.49f);
+
+    public void SetCampusMusic(bool dark) =>
+        SetMusic(dark ? horrorMusic : universityMusic,.40f);
+
+    public void EndScore(EscapeArchive.Ending ending)
+    {
+        SetMusic(null,.65f);
+        string key = ending switch
+        {
+            EscapeArchive.Ending.Amanecer => "final-amanecer",
+            EscapeArchive.Ending.Eco => "final-eco",
+            EscapeArchive.Ending.Umbral => "final-umbral",
+            _ => null
+        };
+        if(key != null) Play(music,key,.78f);
+    }
+
+    void SetMusic(AudioClip clip,float volume)
+    {
+        music.volume = volume;
+        if(music.clip==clip) return;
+        music.Stop();
+        music.clip = clip;
+        if(clip) music.Play();
+    }
 }
