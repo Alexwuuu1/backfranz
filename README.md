@@ -1,62 +1,92 @@
 # Backfranz
 
-## Continuar el desarrollo en otra PC
+Videojuego 2D de exploración y terror universitario desarrollado por el **Grupo 64** en Unity. Yamil llega a su primer día de inducción en Unifranz La Paz. Después de conocer el Bloque A, un descenso en ascensor lo conduce a una versión alterada del campus, donde deberá investigar, ayudar a otros estudiantes y resolver los mecanismos de evacuación.
 
-Clonar `https://github.com/Alexwuuu1/backfranz.git` y trabajar con la versión integrada de `main`.
-Añadir la carpeta clonada a Unity Hub y abrirla con Unity **6000.3.16f1**. La primera apertura
-regenera la caché y descarga los paquetes. Abrir `Assets/Scenes/MenuPrincipal.unity` y pulsar Play.
+**Motor** · Unity 6000.3.16f1, Unity 6.3 LTS.
 
-Para generar el APK, instalar Android Build Support, Android SDK & NDK Tools y OpenJDK desde
-Unity Hub. Los exportadores están en `Tools → Backfranz → Exportar`. Windows y Android deben
-probarse fuera del editor después de generar los ejecutables de esta revisión.
+**Versión integrada** · `main`. **Integración del equipo** · `develop`.
 
-Videojuego 2D de exploración y terror universitario del Grupo 64. Yamil se enfrenta a una universidad que se transforma en un espacio inspirado en backrooms.
+## Avance presentado
 
-## Abrir y jugar
-1. Abrir esta carpeta con Unity **6000.3.16f1**.
-2. Abrir `Assets/Scenes/MenuPrincipal.unity` y presionar Play.
-3. Elige **Nueva partida**. Muévete con WASD o flechas, interactúa con E o Espacio y avanza los diálogos también con Enter. Escape abre la pausa. En móvil aparecen la cruceta y el botón de interacción.
-4. En la ventanilla de Recepción obtienes credencial y horario. Escanea en un molinete o habla con el guardia para cruzar por el paso ancho. Después puedes explorar y subir por las gradas o el ascensor.
-5. El campus cambia cuando eliges un destino inferior en el ascensor desde el piso 6. Consulta el diario, busca a los testigos y resuelve los mecanismos para abrir el portón. [Campaña de escape](Docs/BloqueA/Escape.md)
-6. Elige **Guardar partida** en la pausa. **Continuar partida** recupera ese punto y el progreso en este equipo.
+- Introducción mediante diálogos que presentan a Yamil, la universidad y el objetivo de su visita.
+- Tutorial de cuatro pasos con desplazamiento, interacción, pausa y llegada a Recepción. Incluye indicaciones para teclado y móvil y la opción de omitirlo.
+- Exterior, recepción y control de acceso, siete plantas del campus, interiores independientes, dos escaleras y ascensor.
+- Actividades de inducción y transición a Backfranz, con investigación, pistas, puzzles, rescates y tres finales.
+- Diario, guardado local, continuación de partida, pausa, opciones, galería y créditos.
+- Pixel art con fuentes editables ASE, exportaciones PNG, tipografía Backfranz Pixel y audio ambiental.
 
-Cada nueva partida presenta a Yamil y el motivo de la inducción. Un tutorial de cuatro pasos acompaña el desplazamiento, la interacción, la pausa y la llegada a Recepción. Muestra controles de teclado o táctiles según la plataforma y permite omitirlo. Continuar partida recupera el guardado directamente.
-
-El menú incluye Nueva partida, Continuar partida, Opciones, Extras, Créditos y Salir. En el editor, Salir detiene Play. Las opciones se conservan en este equipo.
-
-## Estado real
-Prototipo jugable con exterior, registro y seguridad, dos escaleras transitables, ascensor, siete plantas navegables e interiores independientes. Las zonas se construyen durante la partida en `Nivel01`. El arte se conserva en fuentes ASE con exportaciones PNG. Consulta la [guía del Bloque A](Docs/BloqueA/README.md) para ver el alcance, las pruebas y los datos por confirmar.
+La distribución de los ambientes es una adaptación para el videojuego. El recorrido, los mecanismos y el alcance actual se describen en la documentación del Bloque A. [Recorrido y alcance](Docs/BloqueA/README.md) · [Campaña de escape](Docs/BloqueA/Escape.md)
 
 ## Equipo
-| Integrante | GitHub |
+
+| Integrante | Cuenta de GitHub |
 |---|---|
-| Alejandro Villalpando Rojas | Alexwuuu1 |
-| Cristopher Iori Lazcano Gutierrez | Crisshubb |
-| Galilea Alison Llusco Asistiri | Galileya |
+| Alejandro Villalpando Rojas | [Alexwuuu1](https://github.com/Alexwuuu1) |
+| Cristopher Iori Lazcano Gutierrez | [Crisshubb](https://github.com/Crisshubb) |
+| Galilea Alison Llusco Asistiri | [Galileya](https://github.com/Galileya) |
 | Alex Joel Quispe Ticona | [lpzealexjoelquispeti-dot](https://github.com/lpzealexjoelquispeti-dot) |
 
-## Organización
-- Assets/Scenes: MenuPrincipal y Nivel01.
-- Assets/Scripts/UI: navegación, sonido y transición.
-- Assets/Scripts/Playable: controles, escenarios, arte y flujo de partida.
-- Assets/Art/UI/Backfranz: fondos, logotipo y fuente propia.
-- Assets/Editor/Hito3Setup.cs: generador reproducible de escenas/UI.
-- Docs/Hito3: pruebas, evidencias e informe técnico.
-- Docs/Hito4: recorrido, exportadores, alcance de pruebas y capturas del prototipo jugable.
-- SourceAssets: referencias originales, generador de tipografía y fuentes gráficas ASE con sus verificadores.
+## Ejecutar el proyecto en Unity
 
-Las referencias de Galileya se conservaron. Fondos y logotipo se adaptaron con generación de imágenes asistida por IA; fuente y audio se generan por código. Detalles en Docs/Hito3/ARTE.md.
+1. Clonar el repositorio y seleccionar `main`.
 
-Repositorio: https://github.com/Alexwuuu1/backfranz
-Flujo: ramas individuales -> develop -> main, mediante merge sin squash para conservar autores. Ver Docs/Hito3/ENTREGA.md.
+   ```bash
+   git clone --branch main https://github.com/Alexwuuu1/backfranz.git
+   ```
 
-## Evidencias del Hito 3
+2. Añadir la carpeta a Unity Hub y abrirla con **6000.3.16f1**. La primera apertura descarga los paquetes y regenera la caché.
+3. Abrir `Assets/Scenes/MenuPrincipal.unity`, pulsar Play y elegir **Nueva partida**.
+4. Para recuperar un guardado de este equipo, elegir **Continuar partida**.
 
-- [Informe PDF](Docs/Hito3/Backfranz-Hito3.pdf)
-- [Menú principal](Docs/Hito3/Capturas/02-menu-backrooms.png)
-- [Menú de pausa](Docs/Hito3/Capturas/03-pausa.png)
-- [Pruebas y alcance](Docs/Hito3/PRUEBAS.md)
+| Acción | Teclado | Android |
+|---|---|---|
+| Moverse | WASD o flechas | Cruceta táctil |
+| Correr | Shift izquierdo | — |
+| Interactuar | E o Espacio | Botón de la mano |
+| Avanzar un diálogo | E, Espacio o Enter | Botón del diálogo |
+| Pausar y acceder al guardado | Escape | Botón de pausa |
 
-Los aportes de los cuatro integrantes están integrados conservando sus commits y autores.
+## Windows y Android
 
-La nueva versión jugable está en preparación para revisión del equipo. Ver [recorrido y exportación](Docs/Hito4/README.md).
+Los ejecutables de esta revisión se generan desde Unity. Los enlaces de descarga se incorporarán cuando el equipo los suba a Google Drive.
+
+| Entregable | Estado de la revisión |
+|---|---|
+| Windows x64 | Compilación y prueba del ejecutable pendientes de registrar |
+| Android APK | Compilación y prueba en dispositivo o emulador pendientes de registrar |
+| Enlaces de Google Drive | Pendientes de proporcionar por el equipo |
+
+Para Windows, usar `Tools → Backfranz → Exportar → Windows x64`. El exportador genera `../Builds/Backfranz-Jugable/Backfranz.exe` respecto a la raíz del proyecto. Distribuir en ZIP la carpeta completa, incluidos `Backfranz_Data`, `UnityPlayer.dll` y los demás archivos generados.
+
+Para Android, instalar **Android Build Support**, **Android SDK & NDK Tools** y **OpenJDK** para esta versión de Unity. Usar `Tools → Backfranz → Exportar → Android APK`. La salida es `../Builds/Android/Backfranz.apk`, con orientación horizontal y Android 8.0/API 26 como mínimo. Ambas exportaciones incluyen `MenuPrincipal` y `Nivel01`.
+
+El estado y los datos que deben acompañar la entrega se registran en el documento de evaluación. [Entrega de la evaluación procesual](Docs/Evaluacion-Procesual.md)
+
+## Verificaciones de la integración
+
+En Unity 6000.3.16f1 se completaron **1.310 comprobaciones** del recorrido, incluidas introducción/tutorial, controles multitáctiles, inducción, escape, guardado y finales. La auditoría revisó **69 mapas y 54.290 puntos transitables**. El verificador gráfico comprobó **935 fuentes ASE y 1.463 fotogramas PNG**.
+
+Estas pruebas se ejecutaron sobre el proyecto en Unity. Las pruebas de los ejecutables de Windows y Android se registrarán después de la exportación. El capturador se ajustó para conservar los Canvas de las placas en espacio de mundo; sus imágenes deben regenerarse. [Registro de la integración](Docs/BloqueA/VERIFICACION-INTEGRACION.txt)
+
+## Organización del repositorio
+
+| Carpeta | Contenido |
+|---|---|
+| `Assets/Scenes` | Menú principal y escena que aloja la partida |
+| `Assets/Scripts/Playable` | Controles, construcción de mapas, diálogos, inducción, puzzles y guardado |
+| `Assets/Scripts/UI` | Menús, opciones, audio y navegación |
+| `Assets/Resources/Backfranz` | Sprites, clips, mezclador y configuración cargados durante la partida |
+| `Assets/Editor` | Exportadores y verificadores de Unity |
+| `SourceAssets` | Fuentes ASE, generadores, manifiestos y atribuciones |
+| `Docs/BloqueA` | Recorrido, campaña y verificaciones actuales |
+| `Docs/Hito3` y `Docs/Hito4` | Documentación y evidencias de entregas anteriores |
+
+Las ramas `feature/hito3-alejandro`, `feature/hito3-cristopher`, `feature/hito3-galilea` y `feature/hito3-alexjoel` contienen los aportes individuales. Se integran mediante merges en `develop` y después en `main`, conservando el historial y los autores. Las carpetas generadas por Unity y los ejecutables se excluyen mediante `.gitignore`.
+
+## Créditos y procedencia
+
+Backfranz continúa el proyecto del Grupo 64 conservado en este repositorio y su historial de contribuciones. Las referencias de menú y las fuentes ASE históricas aportadas por el equipo se mantienen en `SourceAssets/Referencias` y `SourceAssets/Aseprite`.
+
+El audio utiliza recursos de **Kenney, TinyWorlds, Thimras, rubberduck, PagDev, sinny, BMacZero, Independent.nu, Joseph Sardin, LEGIT Audio y Kresiek The Furry**, además de diseño sonoro propio. Los recursos externos, sus usos y licencias se identifican en los créditos. [Créditos y fuentes](CREDITOS.md) · [Fuentes y receta del audio](SourceAssets/Backfranz/AUDIO.md)
+
+Los fondos y el logotipo se adaptaron con generación de imágenes asistida por IA. Los sprites generados, la tipografía y sus fuentes editables se documentan junto al arte. [Fuentes gráficas](SourceAssets/Backfranz/README.md) · [Registro visual del Hito 3](Docs/Hito3/ARTE.md)
