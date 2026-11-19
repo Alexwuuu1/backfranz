@@ -1,0 +1,16 @@
+Verificación de integración del 19 de noviembre de 2026
+Unity 6000.3.16f1
+
+Integrados los cuatro commits de cada integrante conservando sus autores.
+El árbol integrado coincide con los cuatro paquetes preparados antes de los ajustes de verificación.
+Arte: 935 fuentes ASE válidas y 1463 fotogramas coincidentes con sus PNG.
+Mapas: 69 mapas, 54290 puntos libres, accesos y personajes móviles comprobados.
+Recorrido: 1310 comprobaciones, salida 0. Incluye tutorial, multitáctil, inducción, escape, guardado y finales.
+
+Se actualizaron las instrucciones para clonar el repositorio original en otra PC.
+El capturador se ajustó para conservar los Canvas de los rótulos en espacio de mundo.
+Las capturas generadas durante la prueba previa a este último ajuste no se publican.
+La corrección del capturador requiere volver a generar sus imágenes.
+
+Pendiente: generar y probar los ejecutables de esta revisión en Windows y Android.
+Las comprobaciones de controles táctiles se ejecutaron en Unity, no en un dispositivo Android.

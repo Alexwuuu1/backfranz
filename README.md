@@ -1,17 +1,14 @@
 # Backfranz
 
-## Desarrollo provisional en otra PC
+## Continuar el desarrollo en otra PC
 
-Este repositorio privado, `Alexwuuu1/villalfranz-provisional`, contiene la continuación de Backfranz en la rama `prototipo`. Conserva el historial del proyecto original para integrar los avances posteriormente. El recorrido actual y la planta baja con pasillo en L e interiores están documentados en [Bloque A](Docs/BloqueA/README.md) y [Planta baja](Docs/BloqueA/Planta-Baja.md).
+Clonar `https://github.com/Alexwuuu1/backfranz.git` y trabajar con la versión integrada de `main`.
+Añadir la carpeta clonada a Unity Hub y abrirla con Unity **6000.3.16f1**. La primera apertura
+regenera la caché y descarga los paquetes. Abrir `Assets/Scenes/MenuPrincipal.unity` y pulsar Play.
 
-1. Iniciar sesión en GitHub con la cuenta `Alexwuuu1` en la otra PC.
-2. Clonar con GitHub Desktop o ejecutar `git clone --branch prototipo https://github.com/Alexwuuu1/villalfranz-provisional.git`.
-3. Instalar Unity **6000.3.16f1** desde Unity Hub y añadir la carpeta clonada a Proyectos. Unity descargará los paquetes y regenerará su caché durante la primera apertura.
-4. Abrir `Assets/Scenes/MenuPrincipal.unity`, pulsar Play y elegir **Nueva partida** o **Continuar partida**.
-
-El proyecto incluye `Assets` con sus `.meta`, `Packages`, `ProjectSettings`, fuentes de arte y documentación. Las carpetas de caché y los archivos temporales se regeneran en cada PC. Para exportar Android, instalar también Android Build Support con SDK, NDK y OpenJDK de esa versión de Unity.
-
-Para integrar después con el equipo, añadir el repositorio original mediante `git remote add original https://github.com/Alexwuuu1/backfranz.git`, ejecutar `git fetch original` y preparar la integración de `prototipo` con la rama de trabajo del equipo.
+Para generar el APK, instalar Android Build Support, Android SDK & NDK Tools y OpenJDK desde
+Unity Hub. Los exportadores están en `Tools → Backfranz → Exportar`. Windows y Android deben
+probarse fuera del editor después de generar los ejecutables de esta revisión.
 
 Videojuego 2D de exploración y terror universitario del Grupo 64. Yamil se enfrenta a una universidad que se transforma en un espacio inspirado en backrooms.
 

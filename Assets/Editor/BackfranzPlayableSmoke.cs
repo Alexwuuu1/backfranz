@@ -147,6 +147,20 @@ public static class BackfranzPlayableSmoke
                 "The exterior starts with its own looping stereo ambience");
             var dirs=UnityEngine.Object.FindObjectsByType<TouchDirection>(FindObjectsInactive.Include,FindObjectsSortMode.None);
             Check(dirs.Length==4,"Four tactile movement directions");
+            var touchRoot=dirs[0].transform.parent.gameObject;
+            touchRoot.SetActive(true);
+            var right=Array.Find(dirs,d=>d.direction==Vector2.right);
+            var up=Array.Find(dirs,d=>d.direction==Vector2.up);
+            var firstTouch=new UnityEngine.EventSystems.PointerEventData(UnityEngine.EventSystems.EventSystem.current){pointerId=101};
+            var secondTouch=new UnityEngine.EventSystems.PointerEventData(UnityEngine.EventSystems.EventSystem.current){pointerId=102};
+            right.OnPointerDown(firstTouch);up.OnPointerDown(secondTouch);
+            Check(Vector2.Distance(s.Player.TouchInput,new Vector2(1,1).normalized)<.001f,"Integrated multitouch normalizes diagonal movement");
+            up.OnPointerUp(secondTouch);
+            Check(s.Player.TouchInput==Vector2.right,"Releasing a second finger preserves the first direction");
+            up.OnPointerDown(secondTouch);right.OnPointerUp(firstTouch);
+            Check(s.Player.TouchInput==Vector2.up,"Reverse finger release preserves the remaining direction");
+            touchRoot.SetActive(false);
+            Check(s.Player.TouchInput==Vector2.zero,"Hiding integrated controls releases all touch directions");
             Check(s.DialogueOpen,"Yamil opens the first-day dialogue");
             var spawn=s.Player.Position;s.Player.Move(Vector2.right,.1f);
             Check(s.Player.Position==spawn,"Dialogue locks movement");
@@ -157,6 +171,14 @@ public static class BackfranzPlayableSmoke
             CaptureHere(s,"00-intro-yamil.png");
             continueButton.onClick.Invoke();Check(s.DialogueOpen,"Dialogue button advances to the next line");
             FinishDialogue(s);Check(!s.DialogueOpen,"Interact closes the final line");
+            s.SendMessage("UpdateTutorial");
+            var tutorial=GameObject.Find("Tutorial de primera partida");
+            Check(tutorial&&Array.Exists(tutorial.GetComponentsInChildren<Text>(),t=>t.text.Contains("1/4")),"New game reveals the movement tutorial after introduction");
+            for(int move=0;move<16;move++){
+                s.Player.Move(Vector2.right,.05f);
+                s.SendMessage("UpdateTutorial");
+            }
+            Check(Array.Exists(tutorial.GetComponentsInChildren<Text>(),t=>t.text.Contains("2/4")),"Tutorial advances after actual walking");
             var mission=GameObject.Find("Misión actual");
             Check(mission&&Array.Exists(mission.GetComponentsInChildren<Text>(),label=>label.text.Contains("gradas de Landaeta")),
                 "Mission panel tells the player how to reach Block A");
@@ -166,6 +188,13 @@ public static class BackfranzPlayableSmoke
                 "Landaeta student uses the same unique appearance in dialogue");
             FinishDialogue(s);
             Check(!s.DialogueOpen&&s.Room==Entrance,"Student conversation returns control outdoors");
+            s.SendMessage("UpdateTutorial");
+            Check(Array.Exists(tutorial.GetComponentsInChildren<Text>(),t=>t.text.Contains("3/4")),"Talking advances the tutorial to pause and saving");
+            var pauseUi=UnityEngine.Object.FindFirstObjectByType<BackfranzUI>();
+            pauseUi.Pause();s.SendMessage("UpdateTutorial");
+            Check(!tutorial.activeSelf&&Time.timeScale==0,"Pause hides the tutorial and freezes gameplay");
+            pauseUi.Resume();s.SendMessage("UpdateTutorial");
+            Check(tutorial.activeSelf&&Array.Exists(tutorial.GetComponentsInChildren<Text>(),t=>t.text.Contains("4/4")),"Resume restores the final reception tutorial step");
             Walk(s,s.World.Cell(Entrance,9,8));CaptureHere(s,"01-landaeta.png");
             Walk(s,s.World.StreetFoot);
             Check(!s.World.HasLineOfSight(s.World.Cell(Entrance,7,11),s.World.StreetFoot+Vector2.up),
@@ -1286,7 +1315,8 @@ public static class BackfranzPlayableSmoke
             camera.backgroundColor=new Color(.04f,.06f,.08f);
         }
         var target=new RenderTexture(1600,900,24);var previous=RenderTexture.active;
-        var canvases=UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+        var canvases=Array.FindAll(UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None),
+            canvas=>canvas.renderMode==RenderMode.ScreenSpaceOverlay);
         foreach(var canvas in canvases){canvas.renderMode=RenderMode.ScreenSpaceCamera;canvas.worldCamera=camera;canvas.planeDistance=1;canvas.sortingOrder+=3000;}
         camera.targetTexture=target;
         UnityEngine.Object.FindFirstObjectByType<SessionFlow>()?.SendMessage("LateUpdate");
