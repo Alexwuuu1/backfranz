@@ -9,7 +9,20 @@ import struct as st
 import zlib
 import json
 import random
-from PIL import Image, ImageDraw, ImageOps
+from PIL import Image, ImageDraw
+from campus_assets import draw_campus
+from bloque_a_assets import draw_block, dark_layers
+from yamil_frames import draw_yamil
+from tour_assets import draw_tour
+from planta_baja_assets import draw_ground
+from finales_assets import draw_endings
+from escenografia_assets import draw_scenery
+from personajes_assets import draw_people
+from muebles_assets import draw_furniture
+from acceso_assets import draw_street
+from rotulos_assets import draw_building_details
+from aulas_assets import draw_classroom_props
+from utileria_assets import draw_campus_utileria
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = Path(__file__).resolve().parent
@@ -20,6 +33,8 @@ GOLD = '#efc077'
 LIGHT = '#f5e7bc'
 TEAL = '#57aaa1'
 manifest = []
+mirrors = {}
+floor_tiles = {}
 
 
 def string(value):
@@ -82,6 +97,10 @@ def flatten(layers):
 
 def save(name, art, frames=None, tags=()):
     frames = frames or [art.layers]
+    if name.startswith(('pb-suelo-', 'tour-suelo-', 'backfranz-pb-suelo-', 'backfranz-tour-suelo-')):
+        floor_tiles[name] = frames[0]
+    if not name.startswith('backfranz-') and len(frames)==1 and (name.startswith(('campus-suelo-','campus-muro-','campus-puerta-','campus-arq-','campus-prop-','bloque-a-','tour-')) and not name.startswith('bloque-a-item-') or name in {'bookshelf','chair','desk','elevator','plant','lamp','lockers'}):
+        mirrors[name]=frames[0]
     ase = SOURCE / 'Editables' / (name + '.ase')
     write_ase(ase, frames, ['Sombras', 'Volumen y color', 'Detalles y luces'], tags)
     files = []
@@ -195,40 +214,8 @@ def props():
 
 
 def character():
-    frames=[]
-    for direction in ('down','left','right','up'):
-        for frame in range(4):
-            a=Art((32,48));a.shadow((6,38,26,45));bob=1 if frame in (1,3) else 0
-            # Shoes and trousers, each leg has its own step silhouette.
-            left=2 if frame==1 else -1 if frame==3 else 0
-            right=2 if frame==3 else -1 if frame==1 else 0
-            for x,step in ((10,left),(18,right)):
-                a.rect((x,29+bob,x+4,39+step),'#263a54',outline=INK)
-                a.rect((x+1,31+bob,x+2,37+step),'#49637c')
-                a.rect((x-1,39+step,x+5,42+step),INK);a.line((x,41+step,x+5,41+step),'#babda8')
-            a.rect((8,19+bob,24,31+bob),INK);a.rect((9,20+bob,23,29+bob),'#aa4b49')
-            a.rect((10,21+bob,14,28+bob),'#cb6559');a.rect((21,21+bob,23,29+bob),'#743e42')
-            for x,step in ((5,right//2),(25,left//2)):
-                a.rect((x,22+bob+step,x+2,30+bob+step),INK)
-                a.rect((x,24+bob+step,x+2,28+bob+step),'#d5a078')
-            a.rect((13,16+bob,19,21+bob),'#b67c5d')
-            a.ellipse((7,2+bob,25,21+bob),INK)
-            a.rect((9,9+bob,23,17+bob),'#dda97d');a.rect((11,18+bob,21,19+bob),'#c88e69')
-            a.poly([(8,10+bob),(8,6+bob),(11,3+bob),(20,2+bob),(25,6+bob),(24,11+bob),(21,9+bob),(17,10+bob),(13,8+bob),(10,11+bob)],'#27303b')
-            a.line((11,5+bob,20,4+bob),'#43505b');a.line((12,6+bob,17,5+bob),'#35434e')
-            if direction=='up':
-                a.rect((9,9+bob,23,17+bob),'#27303b');a.line((11,17+bob,21,17+bob),'#18232e')
-                a.rect((11,21+bob,21,32+bob),INK);a.rect((12,22+bob,20,30+bob),'#49626c');a.rect((13,26+bob,19,29+bob),'#739087')
-                a.line((10,21+bob,10,28+bob),'#d3b77f');a.line((22,21+bob,22,28+bob),'#d3b77f')
-            elif direction in ('left','right'):
-                a.rect((9,12+bob,11,14+bob),INK);a.rect((8,14+bob,10,16+bob),'#e5b58a')
-                a.rect((20,21+bob,25,31+bob),INK);a.rect((21,22+bob,24,29+bob),'#647e83')
-                if direction=='right':a.layers=[ImageOps.mirror(x) for x in a.layers]
-            else:
-                for x in (11,20):a.rect((x,12+bob,x+1,14+bob),INK);a.rect((x,12+bob,x,12+bob),LIGHT)
-                a.line((14,17+bob,18,17+bob),'#9b6255')
-            frames.append(a.layers)
-    save('yamil',a,frames,[(i*4,i*4+3,d) for i,d in enumerate(('Caminar abajo','Caminar izquierda','Caminar derecha','Caminar arriba'))])
+    draw_yamil(Art,save)
+    draw_yamil(Art,save,student=True)
     frames=[]
     for f in range(4):
         a=Art((32,48));a.shadow((2,34,30,47));a.ellipse((8,4,25,23),'#101a26')
@@ -277,19 +264,55 @@ def legacy_sources():
         manifest.append({'source':ase.relative_to(ROOT).as_posix(),'exports':[png.relative_to(ROOT).as_posix()],'layers':1,'frames':1,'origin':'Existing flattened raster, preserved without invented layers'})
 
 
-def main():
-    tiles();props();character();ui();legacy_sources()
+def ground_floor_assets():
+    def save_pair(name, art, mirrored=True):
+        save('pb-'+name, art)
+        if not mirrored:
+            return
+        dark = Art(art.layers[0].size)
+        dark.layers = dark_layers(art.layers)
+        save('backfranz-pb-'+name, dark)
+
+    draw_ground(Art, save_pair)
+
+
+def base_tiles():
+    for name, layers in floor_tiles.items():
+        tile = Art((16, 16))
+        tile.layers = [layer.resize((16, 16), Image.Resampling.BOX) for layer in layers]
+        save('tile16-'+name, tile)
+
+
+def write_catalog():
     (SOURCE/'assets.json').write_text(json.dumps(manifest,indent=2,ensure_ascii=False),encoding='utf8')
     thumbs=[]
     for item in manifest:
         if 'Importados' in item['source']:continue
-        image=Image.open(ROOT/item['exports'][0]);image.thumbnail((64,72),Image.Resampling.NEAREST)
+        image=Image.open(ROOT/item['exports'][0]);image.thumbnail((68,70),Image.Resampling.NEAREST)
         thumbs.append((Path(item['source']).stem,image))
-    contact=Image.new('RGB',(640,((len(thumbs)+7)//8)*100),'#172530');draw=ImageDraw.Draw(contact)
+    contact=Image.new('RGB',(1200,((len(thumbs)+7)//8)*100),'#172530');draw=ImageDraw.Draw(contact)
     for i,(name,image) in enumerate(thumbs):
-        x=(i%8)*80;y=(i//8)*100;contact.paste(image,(x+(80-image.width)//2,y),image);draw.text((x+2,y+76),name[:12],fill='#dfd3b1')
+        x=(i%8)*150;y=(i//8)*100;contact.paste(image,(x+(150-image.width)//2,y),image);draw.text((x+4,y+76),name.removeprefix('backfranz-').removeprefix('campus-').removeprefix('bloque-a-')[:24],fill='#dfd3b1')
     contact.save(SOURCE/'catalogo.png')
     print(f'{len(manifest)} fuentes ASE y exportaciones generadas.')
+
+
+def main():
+    tiles();props();character();ui();draw_campus(Art,save);draw_block(Art,save);draw_tour(Art,save)
+    for name,layers in list(mirrors.items()):
+        art=Art(layers[0].size);art.layers=dark_layers(layers);save('backfranz-'+name,art)
+    legacy_sources()
+    ground_floor_assets()
+    base_tiles()
+    draw_endings(Art, save)
+    draw_scenery(Art, save, dark_layers)
+    draw_people(Art, save)
+    draw_furniture(Art, save, dark_layers)
+    draw_street(Art, save)
+    draw_building_details(Art, save)
+    draw_classroom_props(Art, save)
+    draw_campus_utileria(Art, save)
+    write_catalog()
 
 
 if __name__=='__main__':main()
