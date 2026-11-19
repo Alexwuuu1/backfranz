@@ -1,2 +1,6 @@
-Unity 6000.3.11f1: smoke checks PASS. Menu, transformation, options, extras, credits, quit confirmation, scene load, pause/resume and return verified.
-Keyboard, final Windows quit and visual layout require manual review.
+Unity 6000.3.16f1 - verificacion del 15/10/2026.
+14 comprobaciones automaticas aprobadas sobre las escenas guardadas (BackfranzSmoke.RunSaved): inicio, menu visible, transicion, opciones, volumen, extras, creditos, confirmacion de salida, carga de Nivel01, pausa, opciones durante pausa, conservacion de pausa, reanudacion y retorno al menu.
+Compilacion Windows x64: Build Finished, Result: Success.
+Comprobaciones en la aplicacion Windows: Enter inicia Nivel01; Escape abre pausa; clic en Opciones muestra el panel; pantalla completa funciona. Interfaz visible y legible en ventana y pantalla completa observadas.
+El editor emitio una excepcion de UnityEditor.Search al iniciar; las pruebas del juego terminaron correctamente. Sin errores de compilacion de scripts.
+Pendiente: movimiento A/D, navegacion con flechas, persistencia de preferencias entre ejecuciones, cierre mediante Salir y verificacion individual de 1280x720, 1600x900 y 1920x1080. La automatizacion perdio acceso a la ventana durante la revision, por lo que estos puntos no se dan por aprobados.

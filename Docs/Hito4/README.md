@@ -1,5 +1,7 @@
 # Versión jugable y exportación
 
+Esta página describe el corte del Hito 4. Para el recorrido normal y el kit de sprites que se están desarrollando ahora, consultar [Campus](../Campus/README.md).
+
 Unity 6000.3.16f1. Abrir MenuPrincipal y pulsar Jugar. SessionFlow construye tres sectores de 32 × 20 casillas dentro de Nivel01. La cámara sigue al personaje y se limita al borde del mapa. El campus anterior se conserva desactivado durante la partida.
 
 ## Recorrido

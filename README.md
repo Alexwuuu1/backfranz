@@ -1,17 +1,34 @@
 # Backfranz
 
+## Desarrollo provisional en otra PC
+
+Este repositorio privado, `Alexwuuu1/villalfranz-provisional`, contiene la continuación de Backfranz en la rama `prototipo`. Conserva el historial del proyecto original para integrar los avances posteriormente. El recorrido actual y la planta baja con pasillo en L e interiores están documentados en [Bloque A](Docs/BloqueA/README.md) y [Planta baja](Docs/BloqueA/Planta-Baja.md).
+
+1. Iniciar sesión en GitHub con la cuenta `Alexwuuu1` en la otra PC.
+2. Clonar con GitHub Desktop o ejecutar `git clone --branch prototipo https://github.com/Alexwuuu1/villalfranz-provisional.git`.
+3. Instalar Unity **6000.3.16f1** desde Unity Hub y añadir la carpeta clonada a Proyectos. Unity descargará los paquetes y regenerará su caché durante la primera apertura.
+4. Abrir `Assets/Scenes/MenuPrincipal.unity`, pulsar Play y elegir **Nueva partida** o **Continuar partida**.
+
+El proyecto incluye `Assets` con sus `.meta`, `Packages`, `ProjectSettings`, fuentes de arte y documentación. Las carpetas de caché y los archivos temporales se regeneran en cada PC. Para exportar Android, instalar también Android Build Support con SDK, NDK y OpenJDK de esa versión de Unity.
+
+Para integrar después con el equipo, añadir el repositorio original mediante `git remote add original https://github.com/Alexwuuu1/backfranz.git`, ejecutar `git fetch original` y preparar la integración de `prototipo` con la rama de trabajo del equipo.
+
 Videojuego 2D de exploración y terror universitario del Grupo 64. Yamil se enfrenta a una universidad que se transforma en un espacio inspirado en backrooms.
 
 ## Abrir y jugar
 1. Abrir esta carpeta con Unity **6000.3.16f1**.
 2. Abrir `Assets/Scenes/MenuPrincipal.unity` y presionar Play.
-3. A los cinco segundos el campus cambia con un trueno y destellos.
-4. Jugar carga Nivel01. A/D o flechas horizontales mueven al estudiante del prototipo. Escape pausa.
+3. Elige **Nueva partida**. Muévete con WASD o flechas, interactúa con E o Espacio y avanza los diálogos también con Enter. Escape abre la pausa. En móvil aparecen la cruceta y el botón de interacción.
+4. En la ventanilla de Recepción obtienes credencial y horario. Escanea en un molinete o habla con el guardia para cruzar por el paso ancho. Después puedes explorar y subir por las gradas o el ascensor.
+5. El campus cambia cuando eliges un destino inferior en el ascensor desde el piso 6. Consulta el diario, busca a los testigos y resuelve los mecanismos para abrir el portón. [Campaña de escape](Docs/BloqueA/Escape.md)
+6. Elige **Guardar partida** en la pausa. **Continuar partida** recupera ese punto y el progreso en este equipo.
 
-El menú incluye Jugar, Opciones, Extras (galería), Créditos y Salir. En el editor, Salir detiene Play; en la aplicación la cierra. Volumen, pantalla completa y reducción de destellos guardan preferencias locales.
+Cada nueva partida presenta a Yamil y el motivo de la inducción. Un tutorial de cuatro pasos acompaña el desplazamiento, la interacción, la pausa y la llegada a Recepción. Muestra controles de teclado o táctiles según la plataforma y permite omitirlo. Continuar partida recupera el guardado directamente.
+
+El menú incluye Nueva partida, Continuar partida, Opciones, Extras, Créditos y Salir. En el editor, Salir detiene Play. Las opciones se conservan en este equipo.
 
 ## Estado real
-Menú y pausa implementados. El campus jugable conserva el personaje del Hito 2; Yamil está representado en el nuevo fondo. Sus ciclos de caminar/correr aún requieren integración. No hay guardado de partida, enemigos ni niveles backrooms completos.
+Prototipo jugable con exterior, registro y seguridad, dos escaleras transitables, ascensor, siete plantas navegables e interiores independientes. Las zonas se construyen durante la partida en `Nivel01`. El arte se conserva en fuentes ASE con exportaciones PNG. Consulta la [guía del Bloque A](Docs/BloqueA/README.md) para ver el alcance, las pruebas y los datos por confirmar.
 
 ## Equipo
 | Integrante | GitHub |
@@ -24,10 +41,12 @@ Menú y pausa implementados. El campus jugable conserva el personaje del Hito 2;
 ## Organización
 - Assets/Scenes: MenuPrincipal y Nivel01.
 - Assets/Scripts/UI: navegación, sonido y transición.
+- Assets/Scripts/Playable: controles, escenarios, arte y flujo de partida.
 - Assets/Art/UI/Backfranz: fondos, logotipo y fuente propia.
 - Assets/Editor/Hito3Setup.cs: generador reproducible de escenas/UI.
 - Docs/Hito3: pruebas, evidencias e informe técnico.
-- SourceAssets: referencias originales del equipo y generador de tipografía.
+- Docs/Hito4: recorrido, exportadores, alcance de pruebas y capturas del prototipo jugable.
+- SourceAssets: referencias originales, generador de tipografía y fuentes gráficas ASE con sus verificadores.
 
 Las referencias de Galileya se conservaron. Fondos y logotipo se adaptaron con generación de imágenes asistida por IA; fuente y audio se generan por código. Detalles en Docs/Hito3/ARTE.md.
 
@@ -42,3 +61,5 @@ Flujo: ramas individuales -> develop -> main, mediante merge sin squash para con
 - [Pruebas y alcance](Docs/Hito3/PRUEBAS.md)
 
 Los aportes de los cuatro integrantes están integrados conservando sus commits y autores.
+
+La nueva versión jugable está en preparación para revisión del equipo. Ver [recorrido y exportación](Docs/Hito4/README.md).

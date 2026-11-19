@@ -38,3 +38,7 @@ crashlytics-build.properties
 Thumbs.db
 Desktop.ini
 
+# Python asset generator cache
+__pycache__/
+*.pyc
+

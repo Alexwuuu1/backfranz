@@ -1,0 +1,31 @@
+# Campaña de escape
+
+El recorrido empieza en modo normal. Tras completar las actividades de inducción, elige un piso inferior desde el ascensor de la biblioteca. El campus cambia y Yamil debe encontrar la forma de abrir el portón. La bibliotecaria es el primer contacto. En el Bloque A alterado, **Diario** muestra el progreso de los mecanismos y guarda las pistas descubiertas. **Pistas** permite repasar los testimonios, las lecturas de los instrumentos y las habilidades del equipo. **Pedir orientación** indica dónde continuar.
+
+La ruta actual conecta siete mecanismos entre la biblioteca y la planta baja. Incluye clasificación de archivos y muestras, una transmisión y un cierre con controles que se accionan en orden, recuperación de puentes en interiores, un cuadro de relés, un teclado para el registro de Gesell y una plantilla de taller. Las elecciones incorrectas permiten volver a intentar. Cada mecanismo depende del anterior y de la evidencia correspondiente. Hay personajes de apoyo dentro de salas alteradas que aportan indicios y testimonios opcionales.
+
+Para validar la evacuación, contrasta seis testimonios en tres expedientes de la biblioteca. El permiso habilita el subsuelo en el panel del ascensor. Allí se recupera la energía y se calibra el regulador con las lecturas de tres medidores antes de poder abrir el portón.
+
+La presión restablecida alimenta tres estaciones de señal en laboratorios, aulas y talleres. Cada estación tiene cinco lámparas. Al pulsar un selector, cambia su lámpara y las contiguas. Sincroniza las tres estaciones para completar la red de evacuación. Los estados parciales de las lámparas se conservan al guardar.
+
+El archivo de cámaras de planta baja recibe energía cuando vuelve la red. Revisa cuatro clips en Financiero, Simulación, Fotografía y el Taller. Vera, Mónica, Sara y Raúl aportan referencias de tiempo que quedan en el diario. Asigna una hora distinta a cada clip y reproduce la cronología para habilitar el paso de servicio. El guardado conserva los clips y testimonios revisados, así como el resultado de la reconstrucción.
+
+La red abre el estudio de Sonido del piso 3. Las pistas de Streaming, Fotografía y Sala Mac describen tres ritmos. Compara los valores escritos en las placas y cruza la sala pisando una placa válida por fila en el orden azul, ámbar y violeta. Si pisas otra placa, vuelve a la consola para rearmar el recorrido. El guardado conserva las pistas y la validación final. Si sales de la sala o cargas una partida a mitad del recorrido, puedes rearmar la consola y volver a empezar desde la primera fila.
+
+Con el archivo de cámaras y el canal de Sonido activos, se abre la galería de servicio de planta baja. Los pasos fuera de las franjas verdes atraen a la sombra. Correr eleva más rápido su atención y quedarse quieto la reduce. Cuando el indicador se llena, Yamil vuelve a la última luz. Mara, Felipe y Celia explican cómo liberar el cerrojo mediante los tres mecanismos de la galería. Al guardar se conservan los testimonios y el estado de cada mecanismo.
+
+Habla con Camila, Iván y Paula para conocer qué puede hacer cada uno. En el puesto de coordinación de planta baja, asigna a una persona distinta al mando mecánico, a la recepción de evacuados y a la guía por radio. Cuando los tres puestos estén cubiertos, el equipo te espera junto al portón.
+
+Al intentar abrir el portón, el corte de luz inicia el último tramo. Sigue el aviso por radio, alcanza la palanca de emergencia y decide por dónde salir. El portón principal, el paso de servicio con la grabación y la puerta estrecha tienen epílogos distintos. El texto del epílogo reacciona al resultado de los rescates. Puedes guardar antes de elegir y volver al pasillo con **Ahora no** cuando una salida pida confirmación. Al cruzar se desbloquea la ilustración de esa ruta en **Extras → Finales**. El menú también conserva el arte del campus y permite leer fichas de los personajes.
+
+Los rescates de Dalia, Lázaro y Nuria son opcionales. Sus solicitudes quedan en el diario. Cuando reciben ayuda, se reúnen cerca de la salida y aparecen en el recuento del final.
+
+También puedes acompañar a Inés, Marcos y Elena. Cada persona te indica dónde queda la señal verde de su piso. Te seguirá entre la sala y el pasillo. Espera a que se acerque antes de cruzar la puerta y usa la radio cuando ambos lleguen al refugio. Se puede guardar durante el acompañamiento. La pestaña **Rescates** del diario conserva las entregas, las indicaciones a los refugios y el estado de los seis rescates opcionales.
+
+Guarda desde la pausa para conservar pistas, puentes, expedientes, rescates, mecanismos resueltos y el tiempo acumulado. El resultado separa la duración total del tiempo en la fase de escape. Al continuar un guardado anterior a este cambio, el contador de escape comienza al cargar. **La meta de 40 minutos sigue por medir.** Una prueba automatizada conoce las soluciones y comprueba el funcionamiento del recorrido, así que su duración no calibra la experiencia de una primera partida. Para medirla, una persona debe jugar desde Nueva partida sin conocer las respuestas y registrar los tiempos que muestra la pantalla final.
+
+La ruta automatizada acumuló 5 min 21 s de caminata durante la inducción y 16 min 14 s durante el escape hasta el primer final. La medición suma el tiempo simulado por el motor de movimiento. Incluye desvíos de la prueba y deja fuera el tiempo de leer diálogos, deliberar soluciones, esperar a los acompañantes y pasar las transiciones.
+
+Unity 6000.3.16f1 pasó 1139 comprobaciones del recorrido. La prueba empieza en el menú y cubre la inducción, los interiores, la campaña de escape, los seis rescates, el diario, el guardado y los tres finales. Verifica que un acompañante y las indicaciones de su refugio se conserven al cargar, que el ruido de la galería active el regreso al refugio y que los 41 sonidos estén disponibles. También comprueba que el epílogo de amanecer cambie cuando salen las seis personas. Una prueba específica verifica que cancelar una salida deje su ilustración bloqueada en Extras.
+
+Puntos de ampliación de la campaña: dar a los personajes secundarios objetivos que cambien el recorrido, incorporar investigaciones con varias fuentes y ampliar la variedad de mecanismos independientes.

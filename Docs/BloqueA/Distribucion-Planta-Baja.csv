@@ -1,0 +1,16 @@
+id,ambiente,tipo,x,y,entrada,retorno,contenido
+PB-01,Recepción,ventanilla,54,17,Pasillo norte,,Recepcionista detrás del vidrio; credencial y horario
+PB-02,Financiero,interior,44,18,Pasillo norte,Misma puerta,Ventanillas; turnos; espera
+PB-03,Servicios Estudiantiles,interior,23,18,Pasillo norte,Misma puerta,Escritorios; panel informativo
+PB-04,Auditorio,interior,7,13,Extremo suroeste,Misma puerta,Filas de asientos; pantalla; atril
+PB-05,Game Room,interior,14,13,Pasillo sur,Misma puerta,Máquinas de juego; sofá; mesa
+PB-06,Café,interior,27,13,Pasillo sur,Misma puerta,Barra; vitrina; mesas redondas
+PB-07,Admisiones,interior,43,13,Pasillo sur,Misma puerta,Mostrador; sillas; avisos
+PB-08,Ascensor,conexión,30,21,Núcleo central,Frente al ascensor,Directorio de pisos
+PB-09,Gradas,conexión,36,21,Núcleo central,Mismo núcleo,Subida al piso 1
+PB-10,Molinetes,control de acceso,39,14–18,Pasillo central,Mismo carril,Huella simulada; apertura al acercarse tras autorizar el carril
+PB-10A,Puerta accesible,control de acceso,39,13,Pasillo sur,Misma puerta,Abre el guardia
+PB-10B,Guardia,NPC,41,17,Lado de entrada,,Autoriza la puerta accesible
+PB-11,Entrada exterior,conexión,58,2,Extremo sureste,Acceso exterior,Entrada en L; salida funcional en modo normal
+PB-12,Baños,interior,8,20,Extremo noroeste,Misma puerta,Cerámica; lavamanos; divisiones
+PB-13,Gradas del auditorio,conexión,5,20,Extremo oeste,Mismo núcleo,Dos tramos con descansillo

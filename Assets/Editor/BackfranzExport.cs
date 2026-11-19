@@ -8,6 +8,8 @@ public static class BackfranzExport
     static readonly string[] Scenes={"Assets/Scenes/MenuPrincipal.unity","Assets/Scenes/Nivel01.unity"};
     [MenuItem("Tools/Backfranz/Exportar/Windows x64")]
     public static void Windows(){Build(BuildTarget.StandaloneWindows64,"../Builds/Backfranz-Jugable/Backfranz.exe");}
+    public static void WindowsBlockA(){Build(BuildTarget.StandaloneWindows64,"../Builds/Backfranz-BloqueA/Backfranz.exe");}
+    public static void WindowsTour(){Build(BuildTarget.StandaloneWindows64,"../Builds/Backfranz-Tour/Backfranz.exe");}
     [MenuItem("Tools/Backfranz/Exportar/Android APK")]
     public static void Android(){Build(BuildTarget.Android,"../Builds/Android/Backfranz.apk");}
     [MenuItem("Tools/Backfranz/Exportar/Verificar soporte Android")]
@@ -29,6 +31,12 @@ public static class BackfranzExport
         PlayerSettings.defaultInterfaceOrientation=UIOrientation.LandscapeLeft;
         PlayerSettings.SetApplicationIdentifier(UnityEditor.Build.NamedBuildTarget.Android,"com.grupo64.backfranz");
         PlayerSettings.Android.minSdkVersion=AndroidSdkVersions.AndroidApiLevel26;
+        if(target==BuildTarget.Android)
+        {
+            PlayerSettings.SetScriptingBackend(UnityEditor.Build.NamedBuildTarget.Android,ScriptingImplementation.IL2CPP);
+            PlayerSettings.Android.targetArchitectures=AndroidArchitecture.ARM64|AndroidArchitecture.X86_64;
+            PlayerSettings.Android.targetSdkVersion=(AndroidSdkVersions)36;
+        }
         EditorUserBuildSettings.buildAppBundle=false;
         Directory.CreateDirectory(Path.GetDirectoryName(path));
         var report=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=Scenes,locationPathName=path,target=target,options=BuildOptions.None});
