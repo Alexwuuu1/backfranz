@@ -1,8 +1,10 @@
 using System;
 using System.IO;
+using Backfranz.Playable;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 // Alex Joel: reproducible smoke checks against the actual saved scenes.
 [InitializeOnLoad]
@@ -40,25 +42,65 @@ public static class BackfranzSmoke
             if(step==0 && t>1) {
                 Check(SceneManager.GetActiveScene().name=="MenuPrincipal","Initial menu scene");
                 Check(ui.menu.activeSelf,"Main menu visible");
+                Check(Array.Exists(ui.sound.GetComponents<AudioSource>(),source=>source.loop&&source.clip&&
+                    source.clip.name=="musica-menu"),"The original title theme is assigned to a looping source");
                 Directory.CreateDirectory("Docs/Hito3/Capturas");
                 Capture("Docs/Hito3/Capturas/01-menu-dia.png");step++;
             } else if(step==1 && t>7) {
-                Check(UnityEngine.Object.FindFirstObjectByType<BackfranzTransition>().Completed,"Five second transformation completes");
-                Capture("Docs/Hito3/Capturas/02-menu-backrooms.png");
-                ui.Options();Check(ui.options.activeInHierarchy,"Options opens");ui.Volume(.5f);Check(Mathf.Approximately(AudioListener.volume,.5f),"Volume applies");ui.ClosePanel();
+                var transition=UnityEngine.Object.FindFirstObjectByType<BackfranzTransition>();
+                Check(transition.darkBackground.color.a==0 && transition.flash.color.a==0,"Main menu stays in daylight");
+                ui.Options();Check(ui.options.activeInHierarchy,"Options opens");
+                const string volumeKey = "Backfranz.Volume";
+                bool hadVolume = PlayerPrefs.HasKey(volumeKey);
+                float previousVolume = AudioListener.volume;
+                try
+                {
+                    ui.Volume(.5f);
+                    Check(Mathf.Approximately(AudioListener.volume,.5f),"Volume applies");
+                }
+                finally
+                {
+                    ui.Volume(previousVolume);
+                    if(!hadVolume) PlayerPrefs.DeleteKey(volumeKey);
+                }
+                ui.ClosePanel();
                 ui.Extras();Check(ui.extras.activeInHierarchy,"Extras gallery opens");ui.ClosePanel();
                 ui.Credits();Check(ui.credits.activeInHierarchy,"Credits opens");ui.ClosePanel();
                 ui.AskQuit();Check(ui.confirmation.activeInHierarchy,"Quit confirmation opens");ui.ClosePanel();step++;
             } else if(step==2 && t>8) {ui.Play();step++;}
             else if(step==3 && SceneManager.GetActiveScene().name=="Nivel01" && t>10) {
-                Check(ui.gameplay,"Play loads Nivel01");ui.Pause();Check(Time.timeScale==0,"Pause freezes time");
+                Check(ui.gameplay,"Play loads Nivel01");
+                var session=UnityEngine.Object.FindFirstObjectByType<SessionFlow>();
+                ui.Pause();
+                Check(!ui.menu.activeSelf,"Pause does not cover the opening dialogue");
+                Check(GameObject.Find("Cartela de apertura"),"The first day has its own opening caption");
+                Capture("Docs/Hito3/Capturas/02-apertura.png");
+                for(int i=0;i<8&&session.DialogueOpen;i++)session.Player.Interact();
+                Check(!session.DialogueOpen,"The opening conversation returns control");
+                Check(!GameObject.Find("Cartela de apertura"),"The opening caption clears with the dialogue");
+                ui.Pause();Check(Time.timeScale==0,"Pause freezes time");
+                Check(Array.Exists(ui.menu.GetComponentsInChildren<Text>(),text=>text.text.Contains("Acceso exterior")),
+                    "Pause identifies the current area");
                 Capture("Docs/Hito3/Capturas/03-pausa.png");step++;
             } else if(step==4 && t>12) {
                 ui.Options();Check(ui.options.activeInHierarchy,"Options during pause");ui.ClosePanel();Check(Time.timeScale==0,"Closing options preserves pause");
-                ui.Resume();Check(Time.timeScale==1,"Resume restores time");ui.Pause();ui.MainMenu();step++;
+                ui.Resume();Check(Time.timeScale==1,"Resume restores time");ui.Pause();ui.MainMenu();
+                var cancel=GameObject.Find("Cancelar");
+                Check(cancel&&Time.timeScale==0&&!ui.menu.activeSelf,"Returning to menu asks while the game stays frozen");
+                Check(UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject==cancel,"Return dialog focuses Cancel");
+                Capture("Docs/Hito3/Capturas/04-volver-al-menu.png");
+                cancel.GetComponent<Button>().onClick.Invoke();
+                Check(ui.menu.activeSelf&&Time.timeScale==0,"Cancel returns to pause");
+                ui.MainMenu();
+                string action=Array.Exists(Environment.GetCommandLineArgs(),arg=>arg=="-backfranzSmokeSave")?
+                    "Guardar y salir":"Salir sin guardar";
+                GameObject.Find(action).GetComponent<Button>().onClick.Invoke();
+                step++;
             } else if(step==5 && SceneManager.GetActiveScene().name=="MenuPrincipal" && t>14) {
                 Check(Time.timeScale==1,"Returning to menu resets time");
-                File.WriteAllText("Docs/Hito3/VERIFICACION.txt","Unity "+Application.unityVersion+": smoke checks PASS. Menu, transformation, options, extras, credits, quit confirmation, scene load, pause/resume and return verified.\nKeyboard, final Windows quit and visual layout require manual review.\n");
+                if(Array.Exists(Environment.GetCommandLineArgs(),arg=>arg=="-backfranzSmokeSave"))
+                    Check(SessionFlow.CanContinue,"Saving and returning leaves a resumable checkpoint");
+                File.WriteAllText("Docs/Hito3/VERIFICACION.txt","Unity 6000.3.16f1: smoke checks PASS. Daylight menu, options, extras, credits, quit confirmation, scene load, pause/resume and return verified.\nKeyboard, final Windows quit and visual layout require manual review.\n");
                 Finish(0);
             }
         }catch(Exception e){Debug.LogException(e);Finish(1);}
@@ -66,15 +108,31 @@ public static class BackfranzSmoke
     static void Finish(int code) { EditorApplication.update-=Tick;SessionState.SetBool("Backfranz.Smoke",false);EditorApplication.Exit(code); }
     static void Capture(string path)
     {
-        var canvas=UnityEngine.Object.FindFirstObjectByType<Canvas>();
+        var canvases=UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None);
         var camera=UnityEngine.Object.FindFirstObjectByType<Camera>();
         var target=new RenderTexture(1600,900,24);
         var previous=RenderTexture.active;
-        canvas.renderMode=RenderMode.ScreenSpaceCamera;canvas.worldCamera=camera;canvas.planeDistance=1;canvas.sortingOrder=1000;
-        camera.targetTexture=target;Canvas.ForceUpdateCanvases();camera.Render();RenderTexture.active=target;
+        foreach(var canvas in canvases)
+        {
+            canvas.renderMode=RenderMode.ScreenSpaceCamera;
+            canvas.worldCamera=camera;
+            canvas.planeDistance=1;
+            canvas.sortingOrder+=3000;
+        }
+        camera.targetTexture=target;
+        UnityEngine.Object.FindFirstObjectByType<SessionFlow>()?.SendMessage("LateUpdate");
+        Canvas.ForceUpdateCanvases();
+        UnityEngine.Object.FindFirstObjectByType<UiPolish>()?.SendMessage("Update");
+        Canvas.ForceUpdateCanvases();
+        camera.Render();RenderTexture.active=target;
         var texture=new Texture2D(1600,900,TextureFormat.RGB24,false);texture.ReadPixels(new Rect(0,0,1600,900),0,0);texture.Apply();
         File.WriteAllBytes(path,texture.EncodeToPNG());
-        camera.targetTexture=null;RenderTexture.active=previous;canvas.renderMode=RenderMode.ScreenSpaceOverlay;
+        camera.targetTexture=null;RenderTexture.active=previous;
+        foreach(var canvas in canvases)
+        {
+            canvas.renderMode=RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder-=3000;
+        }
         UnityEngine.Object.Destroy(texture);UnityEngine.Object.Destroy(target);
     }
 }
