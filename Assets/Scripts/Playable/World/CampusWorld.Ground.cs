@@ -7,6 +7,7 @@ namespace Backfranz.Playable
     {
         public const int FirstInterior=16, FirstDarkInterior=23;
         public const int FirstGroundDoor=1; // Keep the old reception room IDs reserved for saved games.
+        public const int AuditoriumIndex=3;
         public readonly struct GroundDoor
         {
             public readonly string Name;
@@ -26,10 +27,12 @@ namespace Backfranz.Playable
         public static int InteriorIndex(int room)=>room>=FirstDarkInterior?room-FirstDarkInterior:room-FirstInterior;
         public static int InteriorRoom(int index,bool dark)=>(dark?FirstDarkInterior:FirstInterior)+index;
         public static bool IsFormerReception(int room)=>room==FirstInterior||room==FirstDarkInterior;
-        public Vector2 DoorPoint(int room,int index)=>Cell(room,GroundDoors[index].X,GroundDoors[index].Y);
+        public Vector2 DoorPoint(int room,int index)=>index==AuditoriumIndex
+            ?Cell(room,7,10):Cell(room,GroundDoors[index].X,GroundDoors[index].Y);
+        public Vector2 AuditoriumServiceDoor(int room)=>IsGroundHall(room)?Cell(room,3,11):Cell(room,3,13);
         public Vector2 Stairs(int room,int core=0)
         {
-            if(IsGroundHall(room))return core==0?Cell(room,36,21):Cell(room,5,20);
+            if(IsGroundHall(room))return core==0?Cell(room,36,21):Cell(room,room==Ground?4:5,20);
             return core==0?Cell(room,27,18):Cell(room,2,18);
         }
 
@@ -57,7 +60,7 @@ namespace Backfranz.Playable
             Art(room,"pb-gradas",Cell(room,upper,14),new Vector2(3,5),"Segundo tramo",-950);
             FloorLight(room,8,11,new Vector2(8,4),Color.white);
         }
-        public Vector2 ReceptionContact=>Cell(Ground,54,17);
+        public Vector2 ReceptionContact=>Cell(Ground,54,19);
         public Vector2 GuardContact=>Cell(Ground,41,17);
         const int SecurityColumn=39, FirstSecurityLane=13;
         public const int AccessLaneCount=6;
@@ -123,6 +126,12 @@ namespace Backfranz.Playable
 
         void BuildSecurity()
         {
+            var center=Cell(Ground,SecurityColumn,FirstSecurityLane)+Vector2.up*2.5f;
+            Art(Ground,"solid",center,new Vector2(1.65f,6),"Base del control",-940)
+                .GetComponent<SpriteRenderer>().color=new Color(.23f,.32f,.35f);
+            foreach(int edge in new[]{-1,1})
+                Art(Ground,"solid",center+Vector2.right*(edge*.82f),new Vector2(.075f,6),"Borde del control",-939)
+                    .GetComponent<SpriteRenderer>().color=new Color(.64f,.66f,.61f);
             for(int lane=0;lane<AccessLaneCount;lane++){
                 var point=Cell(Ground,SecurityColumn,FirstSecurityLane+lane);
                 int order=CampusLook.Depth(point.y)-3;
@@ -157,12 +166,17 @@ namespace Backfranz.Playable
         public Rect CameraBounds(int room)
         {
             if(room==Entrance)return Rect.MinMaxRect(-16.5f,-10.5f,StreetWidth-16.5f,10.5f);
+            if(room==Ground)return Rect.MinMaxRect(Cell(room,0,0).x,-10,Cell(room,62,0).x,13);
             if(IsGroundHall(room))return Rect.MinMaxRect(Cell(room,2,0).x,-10,Cell(room,62,0).x,13);
             if(IsStairwell(room))return Rect.MinMaxRect(Cell(room,2,0).x,-9,Cell(room,15,0).x,9);
             if(IsLiftCabin(room))return Rect.MinMaxRect(Cell(room,4,0).x,-8,Cell(room,18,0).x,6);
             if(IsUpperInterior(room))return UpperInteriorBounds(room);
-            if(IsInterior(room))return Rect.MinMaxRect(Cell(room,1,0).x,-9,Cell(room,21,0).x,5);
-            var o=Offset(room);return Rect.MinMaxRect(o.x-16,-10,o.x+15,9);
+            if(IsInterior(room))return Rect.MinMaxRect(Cell(room,1,0).x,-9,Cell(room,21,0).x,
+                InteriorIndex(room)==AuditoriumIndex?5.75f:5);
+            var o=Offset(room);
+            // North-facing doors and nameplates extend above the perimeter tile.
+            float top=room==ServiceGallery?9f:10.25f;
+            return Rect.MinMaxRect(o.x-16,-10,o.x+15,top);
         }
         void BuildGroundHall(int room)
         {
@@ -170,7 +184,9 @@ namespace Backfranz.Playable
             void Fill(int x0,int x1,int y0,int y1){for(int x=x0;x<=x1;x++)for(int y=y0;y<=y1;y++)area.Add(new Vector2Int(x,y));}
             Fill(5,61,13,18);Fill(55,61,2,12);Fill(53,54,11,12);
             Fill(28,32,18,21);Fill(34,38,18,21);Fill(3,9,16,20);
-            if(room==Ground)Fill(53,55,19,19);
+            Fill(2,10,16,20);Fill(2,5,13,15);
+            Fill(2,4,11,12);Fill(6,9,10,12);
+            if(room==Ground){Fill(48,57,19,20);Fill(51,57,21,21);}
             else AddDarkGroundDetour(area);
             var openings=new HashSet<Vector2Int>();
             void Opening(Vector2 contact, int direction)
@@ -181,30 +197,39 @@ namespace Backfranz.Playable
             AddUpperDoorOpenings(room,openings);
             Opening(Lift(room),1);Opening(Exit(room),-1);
             if(IsDark(room))Opening(GalleryEntrance,1);
+            Opening(AuditoriumServiceDoor(room),-1);
             foreach(int core in new[]{0,1})
                 for(int x=-1;x<=1;x++)Opening(Stairs(room,core)+Vector2.right*x,1);
             GroundSurface(room,area,"terrazo","pb-muro-yeso",cell=>
                 IsDark(room)&&cell.x>=32&&cell.x<=41&&cell.y<=12?"rejilla":
+                room==Ground&&cell.x>=48&&cell.x<=57&&cell.y>=19?"oficina":
+                cell.x>=6&&cell.x<=9&&cell.y<=12?"auditorio":
+                cell.x<=4&&cell.y<=15?"metal":
                 cell.x>=55&&cell.y<=6?"oficina":
                 cell.x>=38&&cell.x<=40?"metal":null,openings);
             PlaceGroundBend(room);
             for(int i=FirstGroundDoor;i<GroundDoors.Length;i++){
                 var door=GroundDoors[i];var p=DoorPoint(room,i);
-                var boundary=new Vector2Int(door.X,door.Y+(door.South?-1:1));
-                PlaceWallDoor(room,p,door.Name,DoorMaterial.Glass,door.South,HallWall(room,boundary));
+                var boundary=Vector2Int.RoundToInt(p-Cell(room,0,0))+(door.South?Vector2Int.down:Vector2Int.up);
+                bool auditorium=i==AuditoriumIndex;
+                PlaceWallDoor(room,p,door.Name,auditorium?DoorMaterial.Wood:DoorMaterial.Glass,door.South,HallWall(room,boundary),
+                    auditorium?"acustica":null);
             }
+            PlaceWallDoor(room,AuditoriumServiceDoor(room),"Servicio",DoorMaterial.Metal,true,"pb-muro-yeso");
             if(room==Ground){
-                var window=ReceptionContact+Vector2.up;
-                PlaceSpeaker(room,"pb-recepcionista","Recepcionista",window);
-                rooms[room].Obstacles.Add(new Rect(Cell(room,53,18)-Vector2.one*.5f,new Vector2(3,2)));
-                Art(room,"pb-ventanilla",window+Vector2.up*.32f,new Vector2(3.1f,1.65f),"Ventanilla de recepción",CampusLook.Depth(window.y)+3);
-                MountPlaque(room,"Recepción",window+Vector2.up*.98f,.22f,CampusLook.Depth(window.y)+4);
+                BuildGroundReception();
+                MountPlaque(room,"Oeste",Cell(room,6,21)+Vector2.up*.18f,.22f,CampusLook.Depth(Cell(room,6,21).y));
+                FloorLight(room,7,11,new Vector2(4,4),new Color(1f,.84f,.65f));
             }
             PlaceLift(room);
             for(int core=0;core<StairwellCount;core++)PlaceWallStair(room,Stairs(room,core),StairName(core));
             if(room==Ground){BuildSecurity();PopulateHall();}
-            else for(int i=0;i<3;i++)Prop(room,"pb-molinete",37,14+i,1.65f,1.02f);
-            Prop(room,"pb-listones",49,18,3.5f,1.55f,false);
+            else{
+                for(int i=0;i<3;i++)Prop(room,"pb-molinete",37,14+i,1.65f,1.02f);
+                Prop(room,"pb-molinete",39,15,1.28f,.94f,false);
+                PlaceUnattendedReader();
+            }
+            if(IsDark(room))Prop(room,"pb-listones",49,18,3.5f,1.55f,false);
             Prop(room,"tour-jardinera",60,10,1.6f,2.1f);
             Prop(room,"tour-jardinera",59,17,1.55f,1.53f);
             Prop(room,"campus-prop-tablero-avisos",46,18,2.6f,1.25f,false);
@@ -213,18 +238,35 @@ namespace Backfranz.Playable
             for(int x=10;x<=56;x+=7)
                 FloorLight(room,x,16,new Vector2(10,5),hallLight);
             FloorLight(room,58,10,new Vector2(5,11),hallLight);
-            for(int y=4;y<=12;y+=3)Prop(room,"tour-marca-piso",57,y,.65f,.65f,false);
+            for(int y=4;y<=12;y+=3)
+                Art(room,"tour-marca-piso",Cell(room,57,y),new Vector2(.65f,.65f),"Marca de circulación",
+                    CampusLook.Depth(Cell(room,57,y).y)).transform.Rotate(0,0,room==Ground?90:0);
             PlaceWallDoor(room,Exit(room),"Salida",DoorMaterial.Glass,true,"pb-muro-vidrio");
             if(IsDark(room)){
+                FloorLight(room,3,17,new Vector2(4,4),new Color(.42f,.92f,.72f,.85f));
                 Prop(room,"bloque-a-tuberia",36,9,5.1f,1.14f,false);
                 Prop(room,"bloque-a-cable-caido",39,10,2.25f,.78f,false);
                 FloorLight(room,34,10,new Vector2(4.7f,3.4f),new Color(.35f,.79f,.72f,.58f));
                 FloorLight(room,40,11,new Vector2(4.7f,3.4f),new Color(.77f,.29f,.39f,.58f));
                 Prop(room,"bloque-a-cable-caido",33,17,1.8f,1.2f,false);
                 Prop(room,"bloque-a-alarma",47,17,1,1.2f,false);
-                PlaceWallDoor(room,GalleryEntrance,"Galería de servicio",DoorMaterial.Metal);
+                BuildGalleryApproach();
             }
             BuildUpperDoors(room);
+        }
+
+        void BuildGroundReception()
+        {
+            var window=ReceptionContact+Vector2.up;
+            PlaceSpeaker(Ground,"pb-recepcionista","Recepcionista",window+Vector2.left*1.75f);
+            rooms[Ground].Obstacles.Add(new Rect(Cell(Ground,52,20)-Vector2.one*.5f,new Vector2(5,2)));
+            Art(Ground,"pb-ventanilla",window+Vector2.up*.32f,new Vector2(4.65f,1.7f),"Ventanilla de recepción",CampusLook.Depth(window.y)+3);
+            MountPlaque(Ground,"Recepción",window+Vector2.up*1.01f,.22f,CampusLook.Depth(window.y)+4);
+            Prop(Ground,"mob-banca-espera",49,20,2.5f,1.2f);
+            Prop(Ground,"pb-listones",48,20,1.65f,1.55f,false);
+            MountPlaque(Ground,"↑ Recepción",Cell(Ground,54,9),.22f,CampusLook.Depth(Cell(Ground,54,9).y));
+            MountPlaque(Ground,"Control de acceso",Cell(Ground,39,19),.22f,CampusLook.Depth(Cell(Ground,39,19).y));
+            FloorLight(Ground,54,18,new Vector2(7,6),new Color(1f,.88f,.69f,.78f));
         }
         void GroundSurface(int room,HashSet<Vector2Int> area,string material,string wall,
             System.Func<Vector2Int,string> selectAccent=null,HashSet<Vector2Int> openings=null)
@@ -312,6 +354,9 @@ namespace Backfranz.Playable
             string floor=groundMaterials[index];
             string wall=index==3?"pb-muro-acustico":index==4?"tour-muro-estudio":"pb-muro-yeso";
             var exit=InteriorExit(room);
+            bool auditorium=index==AuditoriumIndex;
+            var openings=WallOpening(room,exit,true);
+            if(auditorium)openings.UnionWith(WallOpening(room,AuditoriumServiceDoor(room),false));
             GroundSurface(room,area,floor,wall,cell=>index switch{
                 1 when cell.x<=10&&cell.y>=11=>"oficina",
                 2 when cell.x>=14&&cell.y>=8=>"roble",
@@ -320,11 +365,14 @@ namespace Backfranz.Playable
                 5 when cell.y>=11=>"cocina",
                 6 when cell.x>=13&&cell.y>=6&&cell.y<=10=>"roble",
                 _=>null
-            },WallOpening(room,exit,true));
+            },openings);
             Color light = IsDark(room)?new Color(.9f,.35f,.4f):index==4?new Color(.8f,.48f,1):Color.white;
             foreach(int x in new[]{6,11,17})
                 FloorLight(room,x,10,new Vector2(7,8),light);
-            PlaceWallDoor(room,exit,"Salida",DoorMaterial.Glass,true,wall);
+            PlaceWallDoor(room,exit,auditorium?"Vestíbulo":"Salida",auditorium?DoorMaterial.Wood:DoorMaterial.Glass,true,wall,
+                auditorium?"acustica":null);
+            if(auditorium)
+                PlaceWallDoor(room,AuditoriumServiceDoor(room),"Paso de servicio",DoorMaterial.Metal,false,wall);
             void P(string asset,int x,int y,float width=1.8f,float height=1.6f,bool solid=true)=>Prop(room,asset,x,y,width,height,solid);
             switch(index){
                 case 1:
@@ -349,16 +397,32 @@ namespace Backfranz.Playable
                 case 3:
                     P("pb-pantalla",11,13,8.4f,2.4f,false);P("tour-atril-auditorio",16,12,2,1.7f);
                     PlaceRoomDetail(room,"carpetas",16,12,.66f,.44f,.75f);
-                    P("utileria-consola-auditorio",5,12,1.5f,1.11f);
+                    P("utileria-consola-auditorio",auditorium?6:5,12,1.5f,1.11f);
                     foreach(int y in new[]{6,8,10})foreach(int x in new[]{5,7,9,13,15,17})
                         P(x==5||x==17?"mob-butaca-lateral":"mob-butaca-auditorio",x,y,1.25f,1.3f);
                     P("campus-prop-extintor",3,11,.7f,1.22f,false);
+                    if(auditorium){
+                        Art(room,"solid",Cell(room,11,11)+Vector2.down*.47f,new Vector2(18,.12f),"Remate de la tarima",-875)
+                            .GetComponent<SpriteRenderer>().color=new Color(.49f,.32f,.25f);
+                        for(int y=6;y<=10;y+=2)
+                            foreach(int x in new[]{10,12})
+                                Art(room,"solid",Cell(room,x,y)+Vector2.down*.46f,new Vector2(.19f,.08f),"Luz de fila",-874)
+                                    .GetComponent<SpriteRenderer>().color=new Color(.88f,.65f,.42f);
+                        FloorLight(room,11,12,new Vector2(10,4),IsDark(room)?new Color(.47f,.53f,.71f,.7f):new Color(1f,.78f,.51f));
+                        if(IsDark(room)){
+                            P("utileria-altavoz",20,12,.8f,1.3f,false);
+                            P("mob-mesa-auxiliar",20,6,1.22f,1.02f);
+                            FloorLight(room,11,4,new Vector2(3,2),new Color(.68f,.56f,.38f));
+                        }
+                    }
                     break;
                 case 4:
                     P("bloque-a-arcade",7,12,1.8f,2.3f);P("bloque-a-arcade",10,12,1.8f,2.3f);
-                    P("mob-sofa-modular",5,6,3.7f,2.1f);P("mob-mesa-auxiliar",5,8,1.45f,1.25f);
-                    PlaceRoomDetail(room,"taza",5,8,.66f,.42f,.41f);
-                    PlaceCampusProp(room,"control-juegos",6,8,.7f,.45f,.57f);
+                    P("mob-sofa-modular",5,6,3.7f,2.1f);P("mob-mesa-auxiliar",5,8,1.8f,1.25f);
+                    PlaceRoomDetail(room,"taza",5,8,.53f,.40f,.41f);
+                    var gameTable=Cell(room,5,8);
+                    Art(room,"utileria-control-juegos",gameTable+new Vector2(.46f,.54f),new Vector2(.56f,.40f),
+                        "Control de la mesa",CampusLook.Depth(gameTable.y)+3);
                     P("pb-futbolin",15,8,3.7f,2.3f);P("mob-banca-pasillo",16,12,3.5f,1.2f);
                     P("pb-neon",8,13,3.3f,1.7f,false);
                     if(!IsDark(room))FloorLight(room,5,11,new Vector2(5,5),new Color(.63f,.38f,1,.75f));

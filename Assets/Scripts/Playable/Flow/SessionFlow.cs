@@ -19,6 +19,7 @@ namespace Backfranz.Playable
             public string notice = "El Bloque A ha cambiado";
         }
         DescentPreview descentPreview = new DescentPreview();
+        bool heardUnattendedReader, heardServiceKnock;
         [SerializeField] bool enableLegacyPuzzleRoute;
         public BackfranzAudio Sound=>pause.sound;
         public CampusWorld World {get;private set;}
@@ -41,9 +42,15 @@ namespace Backfranz.Playable
         static readonly int[] Sequence={1,0,2};
         BackfranzUI pause;
         CampusAtmosphere atmosphere;
-        Text objective,missionTitle,location,hint,endingKicker,endingTitle,endingStory,endingStats,retryLabel,liftTitle,checklist;
-        Image cardIcon,scheduleIcon,goalIcon,vignette,fade,endingCover,endingAccent;
+        Text objective,location,hint,endingKicker,endingTitle,endingStory,endingStats,retryLabel,liftTitle,checklist;
+        Image vignette,fade,endingCover,endingAccent;
         GameObject ending,touch,hintPanel,liftPanel,statusPanel;
+        RectTransform hudControls;
+        CanvasGroup controlsVisibility,missionVisibility;
+        bool missionPinned;
+        float missionUntil;
+        static readonly Color HintColor=new Color(.96f,.91f,.76f);
+        static readonly Color PickupHintColor=new Color(1f,.81f,.47f);
         Button firstLiftButton;
         int liftOrigin;
         readonly Button[] floorButtons=new Button[7];
@@ -75,6 +82,7 @@ namespace Backfranz.Playable
             camera.allowHDR=false;
             camera.allowDynamicResolution=false;
             World=gameObject.AddComponent<CampusWorld>();atmosphere=gameObject.AddComponent<CampusAtmosphere>();
+            World.ShowLegacyPuzzleProps=enableLegacyPuzzleRoute;
             var actor=CampusLook.Art(transform,"yamil-00",World.Entry(Entrance),new Vector2(.8f,1.2f),"Yamil");
             Player=actor.AddComponent<ExplorerMotor>();Player.world=World;Player.session=this;
             CreateHUD();
@@ -90,11 +98,22 @@ namespace Backfranz.Playable
             int previous=Room;
             Room=room;World.Show(room);ShowEscapeContacts();RefreshAcousticRoom();Player.TouchAxis(Vector2.zero);
             ShowInductionContacts();
+            ShowAuditoriumTool();
+            ShowCampusRadio();
+            EnterClassrooms();
+            EnterWorkshop();
             Player.transform.position=arrival??(byLift?World.Lift(room)+Vector2.down*2:World.Entry(room));
             EnterEscortRoom(previous);
             EnterGalleryWatch();
             noticeUntil=0;
+            EnterAuditoriumRescue();
+            EnterServices();
             AlterReturningHall();
+            if(room==DarkGround)
+            {
+                World.ShowUnattendedReader(heardUnattendedReader);
+                World.SetGalleryAccess(GalleryReady);
+            }
             atmosphere.SetRoom(room,Sound.AmbientGroup);
             Sound.SetCampusMusic(IsDark(room));
             if(room==ForFloor(3,true))World.ShowBreakers(CircuitProgress,CircuitSolved);
@@ -105,8 +124,13 @@ namespace Backfranz.Playable
         {
             if(Finished||Time.timeScale==0||Crossing)return;
             if(DialogueOpen){AdvanceDialogue();return;}
+            if(InteractionPrompt().Length>0)Player.Reach(Player.Facing);
             if(TryEscapeInteraction(true,out _))return;
             if(TryInductionInteraction(true,out _))return;
+            if(TryAuditoriumTool(true,out _))return;
+            if(TryCampusRadio(true,out _))return;
+            if(TryClassroomChalk(true,out _))return;
+            if(TryWorkshopCable(true,out _))return;
             if(TryTalk())return;
             if(Room==Entrance){
                 if(Near(World.StreetDoor,1.45f))UseDoor(World.StreetDoor,Ground,World.Entry(Ground));
@@ -129,6 +153,15 @@ namespace Backfranz.Playable
                     UseDoor(World.UpperInteriorDoor(interior),interior,World.Entry(interior));
                     return;
                 }
+            if(AtAuditoriumServiceDoor())
+            {
+                bool dark=IsDark(Room);
+                int destination=IsGroundHall(Room)?InteriorRoom(AuditoriumIndex,dark):ForFloor(0,dark);
+                var arrival=World.AuditoriumServiceDoor(destination)+Vector2.up*(IsGroundHall(destination)?1:-1);
+                if(dark&&auditoriumWedged)StartCoroutine(Travel(destination,false,arrival));
+                else UseDoor(World.AuditoriumServiceDoor(Room),destination,arrival);
+                return;
+            }
             if(IsInterior(Room)&&Near(World.InteriorExit(Room),1.3f)){
                 int hall=IsDark(Room)?DarkGround:Ground,index=InteriorIndex(Room);
                 UseDoor(World.InteriorExit(Room),hall,World.DoorPoint(hall,index)+Vector2.up*(GroundDoors[index].South?1:-1));return;
@@ -147,10 +180,16 @@ namespace Backfranz.Playable
                     UseDoor(World.Exit(Room),Entrance,World.StreetReturn);return;
                 }
             }else if(Room==Basement){
-                if(!HasFuse&&Near(World.Fuse)){HasFuse=true;World.TakeFuse();Sound.PickUp();Notify("Fusible recuperado");return;}
+                if(!HasFuse&&Near(World.Fuse)){HasFuse=true;World.TakeFuse();Sound.PickUp();Notify("Recogiste el fusible");return;}
                 if(Near(World.PowerPanel)){
                     if(!HasFuse){Notify("Falta un fusible en el cuadro");return;}
-                    if(!World.Power)World.RestorePower();Confirm("Energía de emergencia restablecida");return;
+                    if(!World.Power)
+                    {
+                        World.RestorePower();
+                        RefreshMaintenanceReadings();
+                        Sound.MechanismReleased();
+                    }
+                    Confirm("Energía de emergencia restablecida · la reja ya está abierta");return;
                 }
             }else if(enableLegacyPuzzleRoute){
                 int floor=Floor(Room);
@@ -247,7 +286,7 @@ namespace Backfranz.Playable
                 if(shift||room!=liftOrigin)Sound.LiftMotor();
             }
             if(door!=null){
-                Player.Face(door.Facing);
+                Player.Reach(door.Facing);
                 if(door.Material==DoorMaterial.Metal||IsDark(Room)||IsDark(room)) Sound.Door(true);
                 else if(door.Material==DoorMaterial.Wood) Sound.WoodDoor();
                 else Sound.Door();
@@ -284,9 +323,26 @@ namespace Backfranz.Playable
             }
             fade.gameObject.SetActive(false);Crossing=false;Time.timeScale=1;pause.enabled=true;pause.pauseButton.SetActive(true);
             if(shift)OpenDialogue(new[]{
-                new DialogueLine("Yamil","yamil-00","El ascensor sí bajó, pero este no es el mismo pasillo. El portón estaba cerrado cuando parpadearon las luces."),
-                new DialogueLine("Yamil","yamil-00","Voy a encontrar a alguien que conozca una salida. La bibliotecaria tenía el plano de evacuación.")
+                new DialogueLine("Yamil","yamil-00","El ascensor llegó al piso que marqué. ¿Por qué ya no se oye a nadie?"),
+                new DialogueLine("Yamil","yamil-00","Tengo que encontrar una salida. En la biblioteca tenían el plano de evacuación.")
             });
+        }
+
+        internal void ObserveFirstNightMovement(Vector2 position)
+        {
+            if(Room!=DarkGround||Horror!=HorrorState.Active||finaleStage!=0)return;
+            if(!heardUnattendedReader&&(position-World.DarkReaderPosition).sqrMagnitude<9f&&
+                World.HasLineOfSight(position,World.DarkReaderPosition,false)){
+                heardUnattendedReader=true;
+                World.ShowUnattendedReader(true);
+                Sound.Scanner();
+                Notify("Yamil · El lector se activó solo. Por aquí ya no se pasa.",4);
+            }
+            if(!heardServiceKnock&&World.InDarkServiceCorridor(position)){
+                heardServiceKnock=true;
+                Sound.DistantKnock();
+                Notify("Yamil · Ese golpe vino de debajo de la rejilla.",4);
+            }
         }
         void Update()
         {
@@ -298,15 +354,21 @@ namespace Backfranz.Playable
             }
             if(EscapePanelOpen&&Input.GetKeyDown(KeyCode.Escape)){CloseEscapePanel();return;}
             if(JournalOpen&&Input.GetKeyDown(KeyCode.Escape)){CloseJournal();return;}
+            if(BackpackOpen&&Input.GetKeyDown(KeyCode.Escape)){StartCoroutine(CloseBackpackAfterEscape());return;}
+            if(BackpackOpen&&Input.GetKeyDown(KeyCode.I)){CloseBackpack();return;}
             UpdateDialogue();
             UpdateTutorial();
             UpdateFinale();
             if(LiftOpen&&Input.GetKeyDown(KeyCode.Escape)){CloseLift();return;}
             if(StairsOpen&&Input.GetKeyDown(KeyCode.Escape)){CloseStairMenu();return;}
+            if(CanOpenBackpack&&Input.GetKeyDown(KeyCode.I))OpenBackpack();
+            if(CanShowMission&&Input.GetKeyDown(KeyCode.M))ToggleMission();
             bool playing=!Finished&&!Crossing&&!LiftOpen&&!DialogueOpen&&!StairsOpen&&Time.timeScale>0;
+            UpdateLibraryShadow(playing);
             UpdateGalleryWatch(playing);
             UpdateEscort(playing);
-            journalButton.SetActive(playing&&Horror==HorrorState.Active);
+            UpdateAuditoriumRescue(playing);
+            UpdateServices(playing);
             touch.SetActive(playing&&Application.isMobilePlatform);RefreshHUD();
             if(playing)World.UpdatePeople(Room,Player.Position,Time.deltaTime,Time.time);
             if(Room==Ground&&Time.timeScale>0)World.UpdateSecurityGates(Player.Position,Time.deltaTime);
@@ -333,36 +395,81 @@ namespace Backfranz.Playable
         }
         string Objective()
         {
-            if(Room==Entrance)return "Sube por las gradas de Landaeta y entra al Bloque A.";
-            if(IsLiftCabin(Room))return "Acércate al panel de la cabina y elige un piso.";
-            if(IsStairwell(Room))return "Cruza el descansillo y sal por el otro tramo.";
-            if(Room==ServiceGallery)return GallerySolved?"Vuelve a planta baja":"Avanza entre las luces";
+            if(Room==Entrance)return HasSchedule
+                ?"Tengo que volver al Bloque A por las gradas de Landaeta."
+                :"Debería subir por las gradas de Landaeta junto a las tiendas y entrar al Bloque A.";
+            if(IsStairwell(Room))return ThoughtOnFloor(Floor(stairDestination),"Tengo que cruzar el descansillo para salir");
+            if(Room==ServiceGallery)return GalleryObjective();
             if(!IsDark(Room))return InductionObjective();
-            if(Room!=Basement)return EscapeObjective();
-            if(!HasFuse)return "Busca un fusible";
-            if(!World.Power)return "Activa el cuadro eléctrico";
-            return maintenanceApproved?SignalObjective():"Lee los medidores y calibra el regulador";
+            if(Room==Basement&&!maintenanceApproved)return MaintenanceThought();
+            return AuditoriumRescueThought()??HealthRescueThought()??ClassroomLoopThought()??WorkshopRescueThought()??EscapeObjective();
+        }
+
+        string ThoughtOnFloor(int floor,string thought)
+        {
+            if(!IsLiftCabin(Room)&&!IsStairwell(Room)&&Floor(Room)==floor)return thought+".";
+            if(floor==0)return thought+" (planta baja).";
+            return thought+" (piso "+floor+").";
+        }
+
+        string MaintenanceThought()
+        {
+            if(!HasFuse)return "Tengo que buscar un fusible en el almacén de repuestos, al fondo del pasillo oeste.";
+            if(!World.Power)return "Ya tengo el fusible. Tengo que volver al cuadro eléctrico y abrir la reja.";
+            if(maintenanceReadings!=AllPressureReadings)return "Tengo que revisar las tres lecturas de presión, junto a las tuberías de ingreso, retorno y purga.";
+            return "Ya anoté las lecturas. Ahora puedo calibrar el regulador de emergencia.";
         }
         void RefreshHUD()
         {
-            location.text=Title(Room);objective.text=Objective();
-            missionTitle.text=IsDark(Room)?"MISIÓN · ESCAPE":"MISIÓN · INDUCCIÓN";
-            var missing=new Color(1,1,1,.25f);bool dark=IsDark(Room);
-            cardIcon.sprite=CampusLook.Sprite(dark?"bloque-a-item-fusible":"card");
-            scheduleIcon.sprite=CampusLook.Sprite(dark?"bloque-a-item-llave-tecnica":"campus-item-horario");
-            goalIcon.sprite=CampusLook.Sprite(dark?"bloque-a-item-credencial-salida":"bloque-a-item-guia-biblioteca");
-            cardIcon.color=(dark?HasFuse:HasCard)?Color.white:missing;scheduleIcon.color=(dark?HasKey:HasSchedule)?Color.white:missing;goalIcon.color=(dark?HasBadge:HasVisited(6))?Color.white:missing;
+            if(!hudControls)return;
+            location.text=Title(Room);
+            string thought=Objective();
+            if(objective.text!=thought)
+            {
+                objective.text=thought;
+                missionUntil=Time.unscaledTime+5f;
+            }
+            bool showControls=CanShowMission;
+            controlsVisibility.alpha=showControls?1f:0f;
+            controlsVisibility.blocksRaycasts=showControls;
+            journalButton.SetActive(showControls&&Horror==HorrorState.Active);
+            missionVisibility.alpha=showControls&&(missionPinned||Time.unscaledTime<missionUntil)?1f:0f;
             var prompt="";
+            bool pickup=false;
             if(!Finished&&!LiftOpen&&!DialogueOpen&&Time.timeScale>0){
                 if(Time.unscaledTime<noticeUntil)prompt=notice;
-                else if(!Crossing){prompt=InteractionPrompt();if(prompt.Length>0&&!Application.isMobilePlatform)prompt="E · "+prompt;}
+                else if(!Crossing)
+                {
+                    prompt=InteractionPrompt();
+                    pickup=prompt.StartsWith("Recoger · ",System.StringComparison.Ordinal);
+                    if(prompt.Length>0&&!Application.isMobilePlatform)prompt="E · "+prompt;
+                }
             }
+            hint.color=pickup?PickupHintColor:HintColor;
             hint.text=prompt;hintPanel.SetActive(prompt.Length>0);
+        }
+
+        bool CanShowMission=>!Finished&&!Crossing&&!LiftOpen&&!DialogueOpen&&!StairsOpen&&Time.timeScale>0;
+
+        void ToggleMission()
+        {
+            if(!CanShowMission)return;
+            if(missionPinned||Time.unscaledTime<missionUntil)
+            {
+                missionPinned=false;
+                missionUntil=0f;
+            }
+            else missionPinned=true;
+            RefreshHUD();
         }
         string InteractionPrompt()
         {
             if(TryEscapeInteraction(false,out string escapePrompt))return escapePrompt;
             if(TryInductionInteraction(false,out string inductionPrompt))return inductionPrompt;
+            if(TryAuditoriumTool(false,out string toolPrompt))return toolPrompt;
+            if(TryCampusRadio(false,out string radioPrompt))return radioPrompt;
+            if(TryClassroomChalk(false,out string chalkPrompt))return chalkPrompt;
+            if(TryWorkshopCable(false,out string cablePrompt))return cablePrompt;
             if(Room==Entrance&&Near(World.StudentContact,1.2f))return "Hablar · Estudiante";
             if(Room==Ground&&Near(World.ReceptionContact,1.1f))return "Hablar · Recepcionista";
             if(Room==Ground&&Near(World.GuardContact,.8f))return "Hablar · Guardia";
@@ -376,6 +483,7 @@ namespace Backfranz.Playable
             if(IsUpperInterior(Room))return Near(World.UpperInteriorExit(Room),1.05f)?"Salir":"";
             foreach(int interior in World.UpperInteriorsOn(Room))
                 if(Near(World.UpperInteriorDoor(interior),.84f))return World.UpperDoorLocked(interior,SignalsComplete)?"Revisar cerradura · "+CampusWorld.Title(interior):"Entrar · "+CampusWorld.Title(interior);
+            if(AtAuditoriumServiceDoor())return IsGroundHall(Room)?"Entrar por servicio":"Salir al paso de servicio";
             if(IsInterior(Room)&&Near(World.InteriorExit(Room),1.3f))return "Salir";
             if(IsGroundHall(Room)){
                 for(int i=FirstGroundDoor;i<GroundDoors.Length;i++)if(Near(World.DoorPoint(Room,i),1.3f))return "Entrar · "+GroundDoors[i].Name;
@@ -386,11 +494,11 @@ namespace Backfranz.Playable
             if(!IsDark(Room)){
                 if(Room==Ground&&Near(World.Exit(Room),1.55f))return "Volver al exterior";
             }else if(Room==Basement){
-                if(!HasFuse&&Near(World.Fuse))return "Recoger fusible";
+                if(!HasFuse&&Near(World.Fuse))return "Recoger · Fusible";
                 if(Near(World.PowerPanel))return World.Power?"Revisar el cuadro":"Reparar el cuadro eléctrico";
             }else if(enableLegacyPuzzleRoute){
                 int floor=Floor(Room);
-                if(floor==1&&Near(World.Key))return HasKey?"Leer orden del circuito":"Recoger llave técnica";
+                if(floor==1&&Near(World.Key))return HasKey?"Leer orden del circuito":"Recoger · Llave técnica";
                 if(floor==3)for(int i=0;i<3;i++)if(Near(World.Breaker(i)))return "Interruptor "+Colors[i];
                 if(floor==5&&!HasBadge&&Near(World.Badge))return "Abrir la vitrina";
                 if(Room==DarkGround&&Near(World.Exit(Room),1.55f))return "Abrir salida";
@@ -401,6 +509,8 @@ namespace Backfranz.Playable
             foreach(var stop in World.Stops(Room))if(Near(stop.Position))return stop.Label;
             return "";
         }
+        bool AtAuditoriumServiceDoor()=> (IsGroundHall(Room)||Room==DarkAuditorium||Room==InteriorRoom(AuditoriumIndex,false))&&
+            Near(World.AuditoriumServiceDoor(Room),1.05f);
         public void Finish(bool won)
         {
             if(Finished)return;Finished=true;Won=won;Time.timeScale=0;touch.SetActive(false);hintPanel.SetActive(false);pause.menu.SetActive(false);pause.pauseButton.SetActive(false);pause.enabled=false;
@@ -448,22 +558,33 @@ namespace Backfranz.Playable
             var area=Screen.safeArea;safe.anchorMin=new Vector2(area.xMin/Screen.width,area.yMin/Screen.height);safe.anchorMax=new Vector2(area.xMax/Screen.width,area.yMax/Screen.height);
             var hud=Rect(safe,"Estado de la partida",Vector2.zero,Vector2.one);
             statusPanel=hud.gameObject;
-            var top=Panel(hud,"Zona e inventario",new Vector2(.02f,.91f),new Vector2(.37f,.98f));
-            top.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;
-            location=Label(top,"Zona",new Vector2(.05f,.1f),new Vector2(.72f,.9f),22);
+            bool mobile=Application.isMobilePlatform;
+            hudControls=Rect(hud,"Controles inferiores",
+                mobile?new Vector2(.25f,.018f):new Vector2(.02f,.018f),
+                mobile?new Vector2(.82f,.08f):new Vector2(.52f,.075f));
+            controlsVisibility=hudControls.gameObject.AddComponent<CanvasGroup>();
+            var areaName=Panel(hudControls,"Zona",Vector2.zero,new Vector2(.34f,1f));
+            areaName.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;
+            location=Label(areaName,"Zona",new Vector2(.06f,.10f),new Vector2(.94f,.90f),20);
             location.alignment=TextAnchor.MiddleLeft;
-            cardIcon=Icon(top,"card",new Vector2(.73f,.16f),new Vector2(.80f,.84f));
-            scheduleIcon=Icon(top,"campus-item-horario",new Vector2(.82f,.16f),new Vector2(.89f,.84f));
-            goalIcon=Icon(top,"bloque-a-item-guia-biblioteca",new Vector2(.91f,.16f),new Vector2(.98f,.84f));
-            var mission=Panel(hud,"Misión actual",new Vector2(.54f,.855f),new Vector2(.915f,.98f));
+            var missionButton=Button(hudControls,mobile?"Misión":"Misión [M]",
+                new Vector2(.36f,0f),new Vector2(.56f,1f),ToggleMission,20);
+            missionButton.name="Consultar misión";
+            var mission=Panel(hud,"Misión actual",
+                new Vector2(mobile?.23f:.02f,.167f),new Vector2(mobile?.82f:.465f,.294f));
             mission.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;
-            missionTitle=Label(mission,"Misión",new Vector2(.055f,.65f),new Vector2(.945f,.93f),18);
+            missionVisibility=mission.gameObject.AddComponent<CanvasGroup>();
+            missionVisibility.interactable=false;
+            missionVisibility.blocksRaycasts=false;
+            missionVisibility.alpha=0f;
+            var missionTitle=Label(mission,"Misión",new Vector2(.055f,.65f),new Vector2(.945f,.93f),18);
+            missionTitle.text="YAMIL · PENSAMIENTO";
             missionTitle.alignment=TextAnchor.MiddleLeft;
             missionTitle.color=new Color(1f,.74f,.44f);
             objective=Label(mission,"Qué hacer",new Vector2(.055f,.09f),new Vector2(.945f,.65f),23);
             objective.alignment=TextAnchor.MiddleLeft;
             CreateGalleryWatch(safe);
-            hintPanel=Rect(safe,"Interacción",new Vector2(.20f,.029f),new Vector2(.80f,.097f)).gameObject;
+            hintPanel=Rect(safe,"Interacción",new Vector2(.23f,.093f),new Vector2(.82f,.160f)).gameObject;
             hint=Label(hintPanel.transform,"Acción",Vector2.zero,Vector2.one,23);
             var contrast=hint.gameObject.AddComponent<UnityEngine.UI.Outline>();
             contrast.effectColor=new Color(.025f,.041f,.06f,.94f);
@@ -486,6 +607,7 @@ namespace Backfranz.Playable
             CreateDialogue(safe);
             CreateStairMenu(safe);
             CreateEscapePanel(safe);
+            CreateBackpack(safe);
             fade=Rect(root.transform,"Transición de ascensor",Vector2.zero,Vector2.one).gameObject.AddComponent<Image>();fade.gameObject.SetActive(false);
         }
         void CreateEnding(Transform safe)

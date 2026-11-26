@@ -12,9 +12,9 @@ namespace Backfranz.Playable
         public const int Entrance=0, Ground=1, Top=7, Basement=8, DarkGround=9, DarkTop=15;
         public const int FirstStairwell=30, StairwellCount=2;
         const int RoomSpacing=96;
-        public static readonly string[] Floors={"PB · Recepción","1 · Servicios","2 · Salud y cocina","3 · Computación","4 · Aulas","5 · Aula dinámica","6 · Biblioteca"};
+        public static readonly string[] Floors={"PB · Recepción","1 · Servicios","2 · Salud y cocina","3 · Computación","4 · Aulas","5 · Taller","6 · Biblioteca"};
         static readonly string[] floorMaterials={"terrazo","oficina","laboratorio","computo","linoleo","taller","roble"};
-        static readonly string[] floorSigns={"Recepción","Cajas","Simulación","Sistemas","Aulas","Aula dinámica","Biblioteca"};
+        static readonly string[] floorSigns={"Recepción","Cajas","Simulación","Sistemas","Aulas","Taller","Biblioteca"};
         public readonly struct Stop
         {
             public readonly Vector2 Position;
@@ -33,9 +33,9 @@ namespace Backfranz.Playable
         }
         readonly RoomData[] rooms=new RoomData[TotalRooms];
         readonly Dictionary<string,Tile> floorTiles=new Dictionary<string,Tile>();
-        readonly List<GameObject> gateViews=new List<GameObject>();
         readonly GameObject[] breakers=new GameObject[3];
         GameObject fuseView,keyView,badgeView,powerView;
+        internal bool ShowLegacyPuzzleProps {get;set;}
         public bool Power {get;private set;}
         public static bool IsDark(int room)=>room==ServiceGallery||room==LiftCabin(true)||IsDarkUpperInterior(room)||room>=Basement&&room<FirstStairwell&&(room<FirstInterior||room>=FirstDarkInterior);
         public static int Floor(int room)=>room==ServiceGallery?-1:IsUpperInterior(room)?UpperInteriorFloor(room):IsInterior(room)?0:room>=DarkGround?room-DarkGround:room-Ground;
@@ -76,7 +76,7 @@ namespace Backfranz.Playable
             int floor=Floor(room);var walls=new HashSet<Vector2Int>();
             for(int x=0;x<32;x++){walls.Add(new Vector2Int(x,0));walls.Add(new Vector2Int(x,19));}
             for(int y=0;y<20;y++){walls.Add(new Vector2Int(0,y));walls.Add(new Vector2Int(31,y));}
-            if(room==Basement){for(int y=1;y<19;y++)if(y!=7&&y!=8&&y!=9)walls.Add(new Vector2Int(17,y));}
+            if(room==Basement)AddMaintenanceWalls(walls);
             else{
                 AddFloorWalls(walls,floor);
                 if(IsDark(room))AddDarkHallWalls(walls,floor);
@@ -84,9 +84,24 @@ namespace Backfranz.Playable
             data.Cells=walls;
             FloorTiles(room);
             var liftOpening=WallOpening(room,Lift(room),false);
+            if(floor>=1&&floor<=5)AddUpperDoorOpenings(room,liftOpening);
             foreach(var cell in walls){
                 Vector2 p=Cell(room,cell.x,cell.y);data.Obstacles.Add(new Rect(p-Vector2.one*.5f,Vector2.one));
-                if(liftOpening.Contains(cell))continue;
+                if(liftOpening.Contains(cell)||room==DarkTop&&LibraryArchiveOpening(cell))continue;
+                if(room==Basement&&MaintenanceVoid(cell)&&MaintenanceVoid(cell+Vector2Int.up)&&
+                    MaintenanceVoid(cell+Vector2Int.left)&&MaintenanceVoid(cell+Vector2Int.right))continue;
+                if(floor==1&&ServicesVoid(cell)&&ServicesVoid(cell+Vector2Int.up)&&
+                    ServicesVoid(cell+Vector2Int.left)&&ServicesVoid(cell+Vector2Int.right))continue;
+                if(floor==2&&HealthVoid(cell)&&HealthVoid(cell+Vector2Int.up)&&
+                    HealthVoid(cell+Vector2Int.left)&&HealthVoid(cell+Vector2Int.right))continue;
+                if(floor==3&&ComputingVoid(cell)&&ComputingVoid(cell+Vector2Int.up)&&
+                    ComputingVoid(cell+Vector2Int.left)&&ComputingVoid(cell+Vector2Int.right))continue;
+                if(floor==4&&ClassroomsVoid(cell)&&ClassroomsVoid(cell+Vector2Int.up)&&
+                    ClassroomsVoid(cell+Vector2Int.left)&&ClassroomsVoid(cell+Vector2Int.right))continue;
+                if(floor==5&&WorkshopVoid(cell)&&WorkshopVoid(cell+Vector2Int.up)&&
+                    WorkshopVoid(cell+Vector2Int.left)&&WorkshopVoid(cell+Vector2Int.right))continue;
+                if(floor==6&&LibraryVoid(cell)&&LibraryVoid(cell+Vector2Int.up)&&
+                    LibraryVoid(cell+Vector2Int.left)&&LibraryVoid(cell+Vector2Int.right))continue;
                 if(room>=Ground&&room<=Top&&cell.y==19&&(cell.x>=1&&cell.x<=3||cell.x>=26&&cell.x<=28))continue;
                 PlaceJoinedWall(room,cell,walls,HallWall(room,cell),cell.y==0);
             }
@@ -97,24 +112,35 @@ namespace Backfranz.Playable
                     PlaceWallStair(room,stair,StairName(core));
                 }
             if(room==Basement){
-                foreach(int y in new[]{7,8,9}){
-                    Vector2 p=Cell(room,17,y);gateViews.Add(Art(room,"bloque-a-reja-cerrada",p+Vector2.up*.2f,new Vector2(1,1.5f),"Reja",CampusLook.Depth(p.y)));
-                }
                 DecorateBasement(room);
-                fuseView=Item(room,"bloque-a-item-fusible",Fuse,"Fusible");powerView=Item(room,"bloque-a-item-tablero-apagado",PowerPanel,"Cuadro del ascensor",1.1f);return;
+                fuseView=PlaceCollectible(room,Cell(room,8,16),.84f,"Fusible","bloque-a-item-fusible");
+                powerView=PlaceServiceEquipment(room,PowerPanel,"Cuadro del ascensor","bloque-a-item-tablero-apagado",
+                    new Vector2(1.55f,1.77f)).gameObject;
+                return;
             }
             if(floor==0)Portal(room,"tour-entrada",Exit(room));
             Decorate(room,floor);
             BuildUpperDoors(room);
             PopulateUpper(room,floor);
-            MountPlaque(room,floorSigns[floor],Cell(room,15,19)+Vector2.down*.12f,.25f,CampusLook.Depth(9)+6);
+            if(floor<1)MountPlaque(room,floorSigns[floor],Cell(room,15,19)+Vector2.down*.12f,.25f,CampusLook.Depth(9)+6);
             if(!IsDark(room)){
-                Item(room,floor==6?"bloque-a-item-guia-biblioteca":"note",MainStop(room),"Punto de inducción",.85f);
+                if(floor!=6)MarkInductionPosition(room,MainStop(room),"Punto de inducción");
             }else{
-                DecorateDarkHall(room,floor);
-                if(floor==1)keyView=Item(room,"bloque-a-item-llave-tecnica",Key,"Llave técnica");
-                if(floor==3)for(int i=0;i<3;i++)breakers[i]=Item(room,"bloque-a-item-luz-"+Colors[i],Breaker(i),"Interruptor",1.15f);
-                if(floor==5)badgeView=Item(room,"bloque-a-vitrina-codigo",Badge,"Vitrina",1.25f);
+                if(floor==1)
+                {
+                    keyView=Item(room,"bloque-a-item-llave-tecnica",Key,"Llave técnica");
+                    keyView.SetActive(ShowLegacyPuzzleProps);
+                }
+                if(floor==3)
+                    for(int i=0;i<breakers.Length;i++)
+                    {
+                        breakers[i]=Item(room,"bloque-a-item-luz-"+Colors[i],Breaker(i),"Interruptor",1.15f);
+                        breakers[i].SetActive(ShowLegacyPuzzleProps);
+                    }
+                if(floor==5){
+                    badgeView=Item(room,"bloque-a-vitrina-codigo",Badge,"Vitrina",1.25f);
+                    badgeView.SetActive(ShowLegacyPuzzleProps);
+                }
             }
         }
         static string HallWall(int room,Vector2Int cell)
@@ -122,10 +148,14 @@ namespace Backfranz.Playable
             if(IsGroundHall(room))return cell.x>=54||cell.y==12&&cell.x>=24&&cell.x<=30?"pb-muro-vidrio":"pb-muro-yeso";
             int floor=Floor(room);
             if(room==Basement)return "escena-muro-servicio";
-            if(floor==2)return "tour-muro-clinica";
-            if(floor<=1&&cell.y>=9&&cell.y<=11||floor==6&&cell.y==19)return "tour-muro-vidrio";
-            if(floor==3&&cell.y==4&&cell.x>=18)return "tour-muro-estudio";
-            return floor==5&&cell.y==19?"campus-muro-panel":"tour-muro-blanco";
+            if(floor==1)return cell.y==19||cell.y==11?"tour-muro-vidrio":"campus-muro-panel";
+            if(floor==2)return cell.x<=10&&cell.y<=12?"campus-muro-azulejo":"tour-muro-clinica";
+            if(floor<=1&&cell.y>=9&&cell.y<=11)return "tour-muro-vidrio";
+            if(floor==3)return cell.y<=12?"tour-muro-estudio":"tour-muro-blanco";
+            if(floor==4)return cell.x>=23&&cell.y>=11?"tour-muro-vidrio":"tour-muro-blanco";
+            if(floor==5)return cell.x>=19&&cell.y<=12?"escena-muro-servicio":"campus-muro-panel";
+            if(floor==6)return cell.y<=11?"campus-muro-panel":"tour-muro-vidrio";
+            return "tour-muro-blanco";
         }
 
         static void AddFloorWalls(HashSet<Vector2Int> walls,int floor)
@@ -136,59 +166,15 @@ namespace Backfranz.Playable
             {for(int y=from;y<=to;y++)if(System.Array.IndexOf(openings,y)<0)walls.Add(new Vector2Int(x,y));}
             switch(floor){
                 case 0: Horizontal(10,3,26,7,8,9,15,16,22,23);Vertical(19,12,18,14,15,16);break;
-                // The open waiting hall bends around the records office.
-                case 1:
-                    Horizontal(11,0,26,4,5,11,12,15,16,21,22);
-                    Vertical(17,11,19,13,14,15,16);
-                    Vertical(8,0,5,3,4);
-                    Horizontal(5,0,8,3,4,5);
-                    break;
-                // The clinical wing uses parallel corridors and short cross-passages.
-                case 2:
-                    Horizontal(10,0,29,4,5,10,11,15,16,21,22,27,28);
-                    Vertical(8,10,19,13,14,15);Vertical(17,10,19,13,14,15);Vertical(24,10,19,13,14,15);
-                    Horizontal(5,9,21,12,13,18,19);
-                    break;
-                case 3:
-                    Horizontal(10,0,29,4,5,10,11,15,16,22,23,27,28);
-                    Horizontal(4,8,25,11,12,16,17,21,22);
-                    Vertical(8,0,4,2,3);Vertical(25,0,4,2,3);
-                    Vertical(8,10,19,13,14,15);Vertical(16,10,19,13,14,15);Vertical(24,10,19,13,14,15);
-                    break;
-                case 4:
-                    Horizontal(11,0,31,5,6,12,13,15,16,22,23,27,28);
-                    Vertical(9,11,19,14,15);Vertical(20,11,19,14,15);
-                    Horizontal(4,10,20,11,18);Vertical(20,0,4,2,3);
-                    break;
-                case 5:
-                    Horizontal(10,0,29,4,5,11,12,15,16,21,22,27,28);
-                    Vertical(10,10,19,13,14,15);
-                    Horizontal(6,21,31,21,22,26,27);
-                    break;
-                case 6:
-                    Horizontal(10,0,14,5,6);Horizontal(10,19,31,22,23,28,29);
-                    Vertical(10,0,5,3,4);Vertical(21,0,5,3,4);
-                    break;
+                case 1: AddServicesWalls(walls);break;
+                case 2: AddHealthWalls(walls);break;
+                case 3: AddComputingWalls(walls);break;
+                case 4: AddClassroomsWalls(walls);break;
+                case 5: AddWorkshopWalls(walls);break;
+                case 6: AddLibraryWalls(walls);break;
             }
         }
         public static readonly string[] Colors={"azul","roja","verde"};
-
-        void DecorateBasement(int room)
-        {
-            Prop(room,"bloque-a-tuberia",6,18,7,1.65f,false);
-            Prop(room,"bloque-a-tuberia",23,18,6,1.65f,false);
-            Prop(room,"escena-panel-herramientas",12,18,3.6f,1.5f,false);
-            Prop(room,"bloque-a-rack",3,15,2,2.2f);
-            Prop(room,"bloque-a-rack",14,15,1.7f,2);
-            Prop(room,"bloque-a-rack",25,14,1.5f,1.9f);
-            Prop(room,"bloque-a-charco",21,13,2.8f,1.6f,false);
-            Prop(room,"bloque-a-alarma",28,14,1,1.2f,false);
-            Prop(room,"campus-prop-extintor",16,6,.65f,1.2f,false);
-            MountPlaque(room,"Servicio eléctrico",Cell(room,11,19),.23f,CampusLook.Depth(9)+6);
-            MountPlaque(room,"Bombas y presión",Cell(room,24,19),.23f,CampusLook.Depth(9)+6);
-            FloorLight(room,8,13,new Vector2(10,8),new Color(.69f,.81f,.75f,.76f));
-            FloorLight(room,24,13,new Vector2(8,9),new Color(.77f,.43f,.31f,.70f));
-        }
 
         void Decorate(int room,int floor)
         {
@@ -202,69 +188,12 @@ namespace Backfranz.Playable
                     Place("tour-sillon-odontologia",26,6,1.75f,1.6f);Place("tour-atril-auditorio",4,8,1.65f,1.4f);Place("tour-marca-piso",7,11,1,1,false);
                     MountPlaque(room,"Game Room",Cell(room,5,19),.23f,CampusLook.Depth(9)+6);
                     Mark("Game Room · sala de recreación",6,15);Mark("Cafetería",23,15);Mark("Admisiones y servicios estudiantiles",20,7);break;
-                case 1:
-                    Place("tour-mostrador-blanco",14,17,3.4f,2);Place("bloque-a-maquina-ticket",10,16,1.4f,2);
-                    Place("pb-servicios",5,18,3.2f,1.65f);Place("pb-servicios",21,18,3.2f,1.65f);Place("tour-banca-metal",24,6,3.3f,1.4f);
-                    Place("bloque-a-panel-horario",12,17,2,1.5f,false);Place("tour-mostrador-blanco",20,5,3,2);
-                    Place("mob-estante-archivo",6,3,1.7f,1.85f);
-                    PlaceRoomDetail(room,"carpetas",15,17,1.02f,.66f,.8f);
-                    PlaceCampusProp(room,"registro-turno",11,16,1.28f,.94f,1.37f);
-                    Place("mob-banca-espera",13,5,3.35f,1.30f);
-                    MountPlaque(room,"Arca",Cell(room,20,5)+Vector2.up*.62f,.22f,CampusLook.Depth(-5)+6);
-                    foreach(int x in new[]{11,13,15})Place("tour-marca-piso",x,13,1,1,false);
-                    Mark("Cajas · consulta de pagos",12,15);Mark("Posgrado",5,14);Mark("Dirección de Carrera",21,14);Mark("Arca",20,7);break;
-                case 2:
-                    Place("bloque-a-horno",4,18,1.45f,2);Place("bloque-a-nevera",6,18,1.45f,2);
-                    MountPlaque(room,"Cocina",Cell(room,5,19),.23f,CampusLook.Depth(9)+6);
-                    Place("bloque-a-armario-medico",12,18,1.65f,2.15f);Place("bloque-a-maniqui",14,18,1.45f,1.65f);
-                    Place("tour-banca-metal",20,18,3,1.25f);Place("campus-prop-microscopio",27,18,1.7f,1.8f,false);
-                    Place("campus-prop-lavamanos",7,6,2,1.45f);Place("campus-prop-extintor",25,6,.7f,1.2f,false);
-                    Place("bloque-a-armario-medico",16,2,1.65f,1.9f);
-                    PlaceRoomDetail(room,"dispensador",3,18,.65f,.89f,1.07f);
-                    PlaceCampusProp(room,"maletin-clinico",20,18,.81f,.62f,.78f);
-                    Mark("Cocina de prácticas",5,15);Mark("Sala de Simulación",12,15);Mark("Histología y Fisiología",26,15);break;
-                case 3:
-                    Place("bloque-a-pc",5,18,1.8f,1.8f);Place("bloque-a-rack",12,18,1.6f,2);
-                    Place("campus-prop-tablero-avisos",20,18,3,1.7f,false);
-                    Place("tour-monitor-mac",26,17,2,1.85f);
-                    MountPlaque(room,"Sala Mac",Cell(room,26,19),.23f,CampusLook.Depth(9)+6);
-                    Place("bloque-a-rack",6,5,1.65f,1.95f);Place("tour-banca-metal",14,3,3.5f,1.35f);
-                    Place("bloque-a-tripode",20,2,1.38f,1.52f);
-                    PlaceRoomDetail(room,"horarios",22,18,1.66f,1.07f,1.33f);
-                    PlaceCampusProp(room,"cartel-aire",14,4,1.46f,.92f,.46f);
-                    Place("campus-prop-extintor",27,5,.65f,1.1f,false);
-                    Mark("Laboratorios PC · salas 1, 2 y 3",5,15);Mark("Sala Mac",26,15);Mark("Streaming, fotografía y sonido",14,7);break;
-                case 4:
-                    Place("campus-prop-tablero-avisos",5,18,3.2f,1.6f,false);
-                    Place("bloque-a-pantalla-gesell",24,18,3.2f,1.9f,false);
-                    Place("mob-banca-espera",6,6,3.2f,1.35f);
-                    Place("mob-estante-exhibidor",22,6,2.1f,1.65f);
-                    PlaceRoomDetail(room,"horarios",13,18,1.7f,1.05f,1.33f);
-                    PlaceCampusProp(room,"panel-notas",16,18,1.85f,1.19f,1.38f);
-                    Mark("Sala Jurídica",5,15);Mark("Cámara Gesell",26,15);
-                    break;
-                case 5:
-                    Place("escena-panel-herramientas",24,18,4.1f,1.7f,false);
-                    Place("bloque-a-pizarra-movil",6,17,2.5f,1.9f,false);
-                    Place("mob-mesa-grupo",6,6,3.5f,1.85f);
-                    Place("mob-mesa-taller",25,3,3.2f,1.65f);
-                    PlaceRoomDetail(room,"placa-electronica",25,3,.93f,.62f,.7f);
-                    PlaceCampusProp(room,"caja-componentes",24,3,1.14f,.76f,.71f);
-                    Mark("Aula dinámica · mesas de trabajo en grupo",15,15);Mark("Zona de aulas",26,15);
-                    break;
-                case 6:
-                    foreach(int x in new[]{9,21}){
-                        Place("tour-ventanal",x,18,5.4f,2.2f,false);
-                        Place("tour-escritorio-ventana",x,17,3.6f,1.5f);
-                    }
-                    foreach(int x in new[]{4,6,24,26})Place(x<10?"mob-estante-roble":"mob-estante-acero",x,18,1.85f,2);
-                    foreach(int x in new[]{6,23})Place(x==6?"mob-mesa-lectura-lampara":"mob-mesa-lectura-doble",x,5,2.6f,1.75f);
-                    Place("tour-mostrador-blanco",15,17,3.7f,2.2f);
-                    Place("mob-carro-libros",4,16,1.3f,1.65f);
-                    Place("mob-estante-bajo",3,7,2.65f,1.55f);
-                    PlaceRoomDetail(room,"lector",16,17,.87f,.55f,.83f);
-                    PlaceCampusProp(room,"separalibros",5,18,.91f,.72f,1.22f);
-                    Mark("Consulta y préstamo de material",15,15);Mark("Sala de lectura",17,8);break;
+                case 1: DecorateServicesHall(room);break;
+                case 2: DecorateHealthHall(room);break;
+                case 3: DecorateComputingHall(room);break;
+                case 4: DecorateClassroomsHall(room);break;
+                case 5: DecorateWorkshopHall(room);break;
+                case 6: DecorateLibraryHall(room);return;
             }
             foreach(int x in new[]{4,12,20,27}){
                 if(IsDark(room))Place("bloque-a-alarma",x,18,.7f,1.3f,false);
@@ -277,6 +206,8 @@ namespace Backfranz.Playable
         }
         GameObject Art(int room,string asset,Vector2 point,Vector2 size,string name,int? order=null)=>
             CampusLook.Art(rooms[room].Root.transform,Style(room,asset),point,size,name,order);
+        internal GameObject PlaceCollectible(int room,Vector2 support,float height,string name,string sprite)=>
+            Art(room,sprite,support+Vector2.up*height,new Vector2(.64f,.57f),name,CampusLook.Depth(support.y)+4);
         public GameObject MarkEscapeContact(int room,Vector2 contact,string name,string sprite)
         {
             var point=contact+Vector2.up*.62f;
@@ -340,25 +271,33 @@ namespace Backfranz.Playable
             var aisle=TileFor(room,"escena-suelo-"+aisleMaterial);
             var drain=basement?TileFor(room,"escena-suelo-rejilla"):null;
             var darkAisle=IsDark(room)&&!basement?TileFor(room,"escena-suelo-rejilla"):null;
+            var kitchen=floor==2?TileFor(room,"escena-suelo-cocina"):null;
             for(int x=0;x<32;x++)
                 for(int y=0;y<20;y++)
                 {
-                    bool serviceWalkway=y>=7&&y<=9&&x>=11;
+                    if(basement&&MaintenanceVoid(new Vector2Int(x,y)))continue;
+                    if(floor==1&&ServicesVoid(new Vector2Int(x,y)))continue;
+                    if(floor==2&&HealthVoid(new Vector2Int(x,y)))continue;
+                    if(floor==3&&ComputingVoid(new Vector2Int(x,y)))continue;
+                    if(floor==4&&ClassroomsVoid(new Vector2Int(x,y)))continue;
+                    if(floor==5&&WorkshopVoid(new Vector2Int(x,y)))continue;
+                    if(floor==6&&LibraryVoid(new Vector2Int(x,y)))continue;
                     var tile=basement
-                        ? (x==21&&y>9?drain:serviceWalkway?aisle:baseTile)
-                        : (darkAisle!=null&&DarkHallAisle(floor,x,y)?darkAisle:HallAisle(floor,x,y)?aisle:baseTile);
+                        ? MaintenanceSurface(x,y) switch{"rejilla"=>drain,"metal"=>aisle,_=>baseTile}
+                        : (darkAisle!=null&&DarkHallAisle(floor,x,y)?darkAisle:
+                            kitchen!=null&&x<=10&&y<=11?kitchen:HallAisle(floor,x,y)?aisle:baseTile);
                     PaintSurface(map,x,y,tile);
                 }
         }
 
         static bool HallAisle(int floor,int x,int y)=>floor switch
         {
-            1 => y>=7&&y<=10 || x>=25&&y>=9&&y<=15,
-            2 => y>=7&&y<=9 || y>=13&&y<=15,
-            3 => y>=7&&y<=9 || y>=5&&x>=10&&x<=24&&y<=6,
-            4 => y>=8&&y<=10 || x>=12&&x<=17&&y>=4&&y<=10,
-            5 => y>=8&&y<=9 || x>=21&&y>=6&&y<=9,
-            6 => x>=12&&x<=18&&y>=3&&y<=14 || y>=11&&y<=13,
+            1 => y>=14&&y<=16 || y>=8&&y<=9 || (x>=4&&x<=6||x>=26&&x<=28)&&y>=9&&y<=14,
+            2 => y>=14&&y<=16 || y>=8&&y<=10&&x>=11 || (x>=11&&x<=14||x>=26&&x<=28)&&y>=10&&y<=14,
+            3 => y>=14&&y<=16 || y>=7&&y<=8 || x>=16&&x<=18&&y>=8&&y<=14,
+            4 => y>=14&&y<=16 || y>=8&&y<=9 || x>=14&&x<=17&&y>=8&&y<=14,
+            5 => y>=13&&y<=16 || y>=8&&y<=9&&x>=15 || x>=24&&x<=27&&y>=8&&y<=13,
+            6 => y>=13&&y<=15 || x>=13&&x<=17&&y>=7&&y<=13 || x>=21&&x<=23&&y>=4&&y<=8,
             _ => false
         };
         Tile TileFor(int room,string asset)
@@ -384,7 +323,12 @@ namespace Backfranz.Playable
             if(key){Show(ForFloor(1,true));TakeKey();}
             if(badge){Show(ForFloor(5,true));TakeBadge();}
         }
-        public void RestorePower(){Power=true;foreach(var gate in gateViews)gate.SetActive(false);powerView.GetComponent<SpriteRenderer>().sprite=CampusLook.Sprite("bloque-a-item-tablero-activo");}
+        public void RestorePower()
+        {
+            Power=true;
+            RefreshMaintenancePower(true);
+            powerView.GetComponent<SpriteRenderer>().sprite=CampusLook.Sprite("bloque-a-item-tablero-activo");
+        }
         public void ShowBreakers(int progress,bool solved)
         {
             for(int i=0;i<breakers.Length;i++){
@@ -418,7 +362,7 @@ namespace Backfranz.Playable
             }else if(p.x< -15.2f||p.x>14.2f||p.y< -9.2f||p.y>8.2f)return false;
             if(room==Ground&&SecurityBlocks(position))return false;
             if(includePeople&&PersonBlocks(room,position))return false;
-            if(room==Basement&&!Power&&Mathf.Abs(position.x-Cell(room,17,0).x)<.72f&&p.y>=-3.72f&&p.y<=-.28f)return false;
+            if(room==Basement&&!Power&&MaintenanceGateBlocks(p))return false;
             return true;
         }
         static int RoomAt(Vector2 position)=>Mathf.FloorToInt((position.x+24)/RoomSpacing);

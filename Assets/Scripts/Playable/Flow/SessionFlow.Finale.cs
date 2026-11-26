@@ -8,6 +8,8 @@ namespace Backfranz.Playable
         int finaleStage;
         EscapeArchive.Ending endingSeen;
         SpriteRenderer finaleShadow;
+        SpriteRenderer libraryShadow;
+        float libraryShadowSeenAt=-1f;
         UnityEngine.UI.Image finaleDarkness;
         readonly System.Collections.Generic.HashSet<int> hallVisits=new System.Collections.Generic.HashSet<int>();
         readonly System.Collections.Generic.HashSet<int> hallAlterations=new System.Collections.Generic.HashSet<int>();
@@ -41,13 +43,34 @@ namespace Backfranz.Playable
             if(Room<DarkGround||Room>DarkTop||Room==DarkGround)return;
             if(hallVisits.Add(Room)||!hallAlterations.Add(Room))return;
             if(Room==ForFloor(3,true))
-                World.MarkEscapeContact(Room,World.Cell(Room,14,8),"Puerta que no estaba","tour-puerta-vidrio");
+            {
+                World.MarkEscapeContact(Room,World.Cell(Room,20,11),"Puerta que no estaba","tour-puerta-vidrio");
+                Sound.DistantKnock();
+                Notify("Esa puerta no estaba antes.",4);
+            }
             else if(Room==DarkTop)
-                World.MarkEscapeContact(Room,World.Cell(Room,16,8),"Figura entre los estantes","shadow-02");
-            else if(Room!=ForFloor(4,true))return;
-            Sound.DistantKnock();
-            Notify(Room==DarkTop?"La radio se corta. Hay alguien entre los estantes.":
-                Room==ForFloor(3,true)?"Esa puerta no estaba antes.":"La radio repite tu último paso.",4);
+            {
+                libraryShadow=World.MarkEscapeContact(Room,World.Cell(Room,22,6),
+                    "Figura entre los estantes","shadow-02").GetComponent<SpriteRenderer>();
+                libraryShadow.color=new Color(.57f,.69f,.72f,.73f);
+            }
+        }
+
+        void UpdateLibraryShadow(bool playing)
+        {
+            if(!playing||Room!=DarkTop||!libraryShadow||!libraryShadow.enabled)return;
+            Vector2 feet=World.Cell(DarkTop,22,6);
+            if(libraryShadowSeenAt<0f)
+            {
+                if(Vector2.Distance(Player.Position,feet)>5f||!World.HasLineOfSight(Player.Position,feet,false))return;
+                libraryShadowSeenAt=Time.time;
+                Sound.DistantKnock();
+                Notify("La radio se corta. Hay alguien entre los estantes.",3.5f);
+            }
+            float elapsed=Time.time-libraryShadowSeenAt;
+            libraryShadow.sprite=CampusLook.Sprite("shadow-"+Mathf.Min((int)(elapsed*5),3).ToString("00"));
+            libraryShadow.color=new Color(.57f,.69f,.72f,.73f*Mathf.Clamp01(2.4f-elapsed));
+            if(elapsed>=2.4f)libraryShadow.enabled=false;
         }
 
         void UpdateFinale()

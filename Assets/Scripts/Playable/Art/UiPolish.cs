@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -14,6 +15,9 @@ namespace Backfranz.Playable
         RectTransform menuFrame, viewport;
         bool gameplay;
         int viewportShape=-1;
+        Image selectionRail;
+        readonly Dictionary<GameObject,RectTransform> titleItems=new();
+        GameObject selectedTitleItem;
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void Register(){SceneManager.sceneLoaded-=Loaded;SceneManager.sceneLoaded+=Loaded;}
         static void Loaded(Scene scene,LoadSceneMode mode)
@@ -67,7 +71,8 @@ namespace Backfranz.Playable
             else
             {
                 frameImage.sprite=null;
-                frameImage.color=Ink;
+                frameImage.color=Color.clear;
+                frameImage.raycastTarget=false;
                 foreach(Transform child in viewport)
                     if(child.TryGetComponent<UnityEngine.UI.RawImage>(out var background))
                     {
@@ -79,6 +84,7 @@ namespace Backfranz.Playable
                             cover.aspectRatio=(float)background.texture.width/background.texture.height;
                         }
                     }
+                GetComponent<BackfranzTransition>()?.BuildTitleStage(viewport,menu);
             }
             LayoutFrame();
 
@@ -86,26 +92,30 @@ namespace Backfranz.Playable
             if(logo)
             {
                 logo.gameObject.SetActive(!gameplay);
-                Place((RectTransform)logo,.085f,.075f,.915f,.235f);
+                Place((RectTransform)logo,.085f,.12f,.94f,.255f);
+                if(!gameplay&&logo.TryGetComponent<RawImage>(out var titleArt))
+                    titleArt.color=new Color(.80f,.76f,.68f);
             }
             var heading=menuFrame.Find("Estado del campus").GetComponent<UnityEngine.UI.Text>();
             heading.text=gameplay?"PAUSA":"TU PRIMER DÍA EMPIEZA AQUÍ";
             ConfigureText(heading,gameplay?49:19,Amber,TextAnchor.MiddleLeft);
-            Place(heading.rectTransform,.09f,gameplay?.09f:.24f,.91f,gameplay?.21f:.29f);
+            Place(heading.rectTransform,.09f,gameplay?.09f:.267f,.91f,gameplay?.21f:.302f);
             if(gameplay)
             {
                 var summary=Caption(menuFrame,"Zona y tiempo",heading.font,23,Cream);
                 Place(summary.rectTransform,.09f,.21f,.91f,.335f);
                 ui.SetPauseLocationLabel(summary);
             }
-            var band=Box(menuFrame,"Línea del menú",Amber);
-            Place(band.rectTransform,.09f,.343f,.91f,.347f);
+            if(gameplay){
+                var band=Box(menuFrame,"Línea del menú",Amber);
+                Place(band.rectTransform,.09f,.343f,.91f,.347f);
+            }
 
             var buttons=new List<UnityEngine.UI.Button>();
             foreach(Transform child in menuFrame)
                 if(child.TryGetComponent<UnityEngine.UI.Button>(out var found))buttons.Add(found);
             float buttonTop=gameplay?.38f:.367f;
-            float slot=gameplay?.095f:.088f;
+            float slot=gameplay?.095f:.076f;
             for(int i=0;i<buttons.Count;i++)
             {
                 var item=buttons[i];
@@ -118,12 +128,20 @@ namespace Backfranz.Playable
                 colors.selectedColor=new Color(.28f,.33f,.35f);
                 colors.pressedColor=new Color(.14f,.21f,.25f);
                 colors.disabledColor=new Color(.065f,.10f,.136f);
-                item.colors=colors;
+                if(gameplay)item.colors=colors;
+                else{
+                    item.transition=Selectable.Transition.None;
+                    image.color=Color.clear;
+                }
                 var label=item.GetComponentInChildren<UnityEngine.UI.Text>(true);
                 ConfigureText(label,26,item.interactable?Cream:new Color(.56f,.64f,.66f),TextAnchor.MiddleLeft);
                 Place(label.rectTransform,.058f,0,.94f,1);
-                var marker=Box(item.transform,"Indicador",i==0?Amber:new Color(.24f,.37f,.43f));
-                Place(marker.rectTransform,0,.22f,.009f,.78f);
+                if(gameplay){
+                    var marker=Box(item.transform,"Indicador",i==0?Amber:new Color(.24f,.37f,.43f));
+                    Place(marker.rectTransform,0,.22f,.009f,.78f);
+                }else{
+                    titleItems.Add(item.gameObject,(RectTransform)item.transform);
+                }
 
                 var navigation=item.navigation;
                 navigation.mode=Navigation.Mode.Explicit;
@@ -133,6 +151,12 @@ namespace Backfranz.Playable
                 navigation.selectOnRight=null;
                 item.navigation=navigation;
             }
+            if(!gameplay){
+                selectionRail=Box(menuFrame,"Selección activa",Amber);
+                selectionRail.rectTransform.anchorMin=selectionRail.rectTransform.anchorMax=new Vector2(0,.5f);
+                selectionRail.rectTransform.sizeDelta=new Vector2(15,3);
+                selectionRail.enabled=false;
+            }
             ui.status.transform.SetParent(menuFrame,false);
             ConfigureText(ui.status,20,Amber,TextAnchor.MiddleLeft);
             Place(ui.status.rectTransform,.09f,.887f,.91f,.968f);
@@ -141,6 +165,20 @@ namespace Backfranz.Playable
         void Update()
         {
             if(menuFrame)LayoutFrame();
+            if(!selectionRail||!menuFrame.gameObject.activeInHierarchy)return;
+            var current=EventSystem.current?EventSystem.current.currentSelectedGameObject:null;
+            if(!current||!titleItems.TryGetValue(current,out var button)||!current.GetComponent<Button>().interactable){
+                selectionRail.enabled=false;
+                return;
+            }
+            Vector2 goal=menuFrame.InverseTransformPoint(button.TransformPoint(button.rect.center));
+            goal.x=menuFrame.InverseTransformPoint(button.TransformPoint(new Vector2(button.rect.xMin,0))).x-menuFrame.rect.xMin+4;
+            var rail=selectionRail.rectTransform;
+            goal.y-=menuFrame.rect.center.y;
+            rail.anchoredPosition=selectionRail.enabled?Vector2.Lerp(rail.anchoredPosition,goal,1-Mathf.Exp(-22*Time.unscaledDeltaTime)):goal;
+            selectionRail.enabled=true;
+            if(selectedTitleItem&&selectedTitleItem!=current)GetComponent<BackfranzUI>().sound.Click();
+            selectedTitleItem=current;
         }
 
         void LayoutFrame()
@@ -152,8 +190,7 @@ namespace Backfranz.Playable
             float right=shape==0?.94f:shape==1?.53f:.374f;
             if(gameplay)
                 Place(menuFrame,.048f,.075f,shape==0?.952f:right+.048f,.925f);
-            else
-                Place(menuFrame,.026f,.036f,right,.964f);
+            else Place(menuFrame,.034f,.036f,shape==0?.88f:shape==1?.52f:.369f,.964f);
         }
 
         static UnityEngine.UI.Button Adjacent(List<UnityEngine.UI.Button> buttons,int from,int direction)

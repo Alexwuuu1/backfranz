@@ -62,9 +62,18 @@ namespace Backfranz.Playable
         }
         public static Sprite Student(Vector2 facing,int frame,string character="yamil")
         {
-            int direction=Mathf.Abs(facing.x)>Mathf.Abs(facing.y)?(facing.x<0?1:2):(facing.y>0?3:0);
+            int direction=DirectionIndex(facing);
             return Sprite(character+"-"+(direction*4+Mathf.Clamp(frame,0,3)).ToString("00"));
         }
+
+        internal static Sprite YamilWalk(Vector2 facing,int frame)=>
+            Sprite("yamil-"+(16+DirectionIndex(facing)*6+Mathf.Clamp(frame,0,5)).ToString("00"));
+
+        internal static Sprite YamilReach(Vector2 facing,int frame)=>
+            Sprite("yamil-"+(40+DirectionIndex(facing)*4+Mathf.Clamp(frame,0,3)).ToString("00"));
+
+        static int DirectionIndex(Vector2 facing)=>Mathf.Abs(facing.x)>Mathf.Abs(facing.y)?
+            (facing.x<0?1:2):(facing.y>0?3:0);
         public static void Release(){foreach(var sprite in sprites.Values)if(sprite)Object.Destroy(sprite);sprites.Clear();people.Clear();}
     }
 

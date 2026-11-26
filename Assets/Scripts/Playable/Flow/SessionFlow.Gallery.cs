@@ -15,11 +15,11 @@ namespace Backfranz.Playable
             (22,16,"Celia","pb-estudiante",
                 "El cerrojo queda junto a la entrada. Cuando se abra, solo quedará reunir al equipo para que pueda sujetar el paso.")
         };
-        static readonly (int X, int Y, string Name)[] GalleryMechanisms =
+        static readonly (int X, int Y, string Name, string Sprite, Vector2 Size)[] GalleryMechanisms =
         {
-            (27,13,"Ventilación"),
-            (17,16,"Retorno"),
-            (8,5,"Cerrojo")
+            (27,13,"Ventilación","utileria-ventilador-muro",new Vector2(1.68f,1.54f)),
+            (17,16,"Retorno","utileria-medidor-industrial",new Vector2(1.38f,1.52f)),
+            (8,5,"Cerrojo","bloque-a-item-tablero-apagado",new Vector2(1.13f,1.3f))
         };
         const int AllGalleryWitnesses = 7;
         const float GalleryNoiseLimit = 5f;
@@ -32,6 +32,7 @@ namespace Backfranz.Playable
         GameObject galleryWatchPanel;
         Text galleryWatchText;
         Image galleryWatchBar;
+        bool GalleryReady => blackoutRebuilt && acousticsApproved;
         bool GallerySolved => galleryProgress == GalleryMechanisms.Length;
         Vector2 GalleryPosition(int x,int y) => World.Cell(ServiceGallery,x,y);
         Vector2 GallerySwitch(int index) => GalleryPosition(GalleryMechanisms[index].X,GalleryMechanisms[index].Y);
@@ -46,8 +47,11 @@ namespace Backfranz.Playable
                 World.MarkEscapeContact(Room,GalleryWitness(i),person.Name,person.Sprite);
             }
             for(int i = 0; i < GalleryMechanisms.Length; i++)
-                galleryMechanismViews[i] = World.MarkEscapeContact(Room,GallerySwitch(i),GalleryMechanisms[i].Name,
-                    "bloque-a-item-tablero-activo").GetComponent<SpriteRenderer>();
+            {
+                var mechanism=GalleryMechanisms[i];
+                galleryMechanismViews[i]=World.PlaceServiceEquipment(Room,GallerySwitch(i),mechanism.Name,
+                    mechanism.Sprite,mechanism.Size);
+            }
             galleryShadow = World.MarkEscapeContact(Room,GalleryPosition(20,14),"Sombra de la galería","shadow-00").GetComponent<SpriteRenderer>();
             RefreshGalleryMechanisms();
         }
@@ -112,7 +116,7 @@ namespace Backfranz.Playable
 
         void CreateGalleryWatch(Transform safe)
         {
-            var plate = Panel(safe,"Atención de la sombra",new Vector2(.02f,.782f),new Vector2(.26f,.888f));
+            var plate = Panel(safe,"Atención de la sombra",new Vector2(.02f,.315f),new Vector2(.23f,.40f));
             galleryWatchPanel = plate.gameObject;
             plate.GetComponent<Image>().raycastTarget = false;
             galleryWatchText = Label(plate,"Estado de la sombra",new Vector2(.06f,.36f),new Vector2(.94f,.87f),21);
@@ -140,10 +144,13 @@ namespace Backfranz.Playable
             galleryWatchBar.rectTransform.anchorMax = new Vector2(inLight?1:attention,1);
             galleryWatchBar.color = inLight ? new Color(.34f,.84f,.66f) :
                 Color.Lerp(new Color(.85f,.66f,.31f),new Color(.91f,.26f,.29f),attention);
-            var anchor = GalleryPosition(20,14)+new Vector2(Mathf.Sin(Time.time*.74f)*5,Mathf.Sin(Time.time*1.12f)*2);
-            Vector2 target = Vector2.Lerp(anchor,Player.Position,inLight?0:attention*.86f);
-            galleryShadow.transform.position = Vector2.MoveTowards(galleryShadow.transform.position,target+Vector2.up*.62f,
-                Time.deltaTime*Mathf.Lerp(1.1f,4.1f,attention));
+            var anchor = GalleryPosition(20,14)+new Vector2(Mathf.Sin(Time.time*.74f)*4,.38f);
+            var visualLift=Vector2.up*.62f;
+            Vector2 feet=galleryShadow.transform.position-(Vector3)visualLift;
+            bool canApproach=!inLight&&World.HasLineOfSight(feet,Player.Position,false);
+            Vector2 target=canApproach?Vector2.Lerp(anchor,Player.Position,attention*.86f):anchor;
+            var step=Vector2.MoveTowards(feet,target,Time.deltaTime*Mathf.Lerp(1.1f,4.1f,attention));
+            if(World.CanStand(step,false))galleryShadow.transform.position=step+visualLift;
             galleryShadow.sprite = CampusLook.Sprite("shadow-" + ((int)(Time.time*5)%4).ToString("00"));
             galleryShadow.sortingOrder = CampusLook.Depth(galleryShadow.transform.position.y-.62f)-3;
             galleryShadow.color = new Color(.58f,.71f,.82f,Mathf.Lerp(.48f,1,attention));
@@ -154,11 +161,10 @@ namespace Backfranz.Playable
             prompt = "";
             if(Room == DarkGround && Near(World.GalleryEntrance,.80f))
             {
-                bool ready = blackoutRebuilt && acousticsApproved;
-                prompt = ready?"Entrar · Galería de servicio":"Revisar · Galería de servicio";
+                prompt = GalleryReady?"Entrar · Galería de servicio":"Revisar · Galería de servicio";
                 if(interact)
                 {
-                    if(ready) UseDoor(World.GalleryEntrance,ServiceGallery,World.Entry(ServiceGallery));
+                    if(GalleryReady) UseDoor(World.GalleryEntrance,ServiceGallery,World.Entry(ServiceGallery));
                     else Notify("El cierre responde al archivo de cámaras y al canal de Sonido.");
                 }
                 return true;
@@ -227,15 +233,17 @@ namespace Backfranz.Playable
         {
             for(int i = 0; i < galleryMechanismViews.Length; i++)
                 galleryMechanismViews[i].color = i<galleryProgress?new Color(.55f,.96f,.75f):new Color(.84f,.70f,.55f);
+            if(GallerySolved)galleryMechanismViews[2].sprite=CampusLook.Sprite("bloque-a-item-tablero-activo");
             galleryShadow.enabled = !GallerySolved;
         }
 
         string GalleryObjective()
         {
-            if(Room != ServiceGallery) return "PB · entra en la Galería de servicio";
+            if(Room != ServiceGallery)return ThoughtOnFloor(0,"Tengo que liberar el cerrojo. La Galería de servicio queda en el pasillo oeste, junto al Auditorio");
+            if(GallerySolved)return "Ya liberé el cerrojo. Tengo que volver con el equipo a planta baja.";
             for(int i=0;i<GalleryWitnesses.Length;i++)
-                if(!HasEscapeFlag(galleryClues,i)) return "Galería · busca a "+GalleryWitnesses[i].Name;
-            return GallerySolved?"Galería · vuelve a planta baja":"Galería · revisa los tres mecanismos";
+                if(!HasEscapeFlag(galleryClues,i))return "Tengo que buscar a "+GalleryWitnesses[i].Name+". Será mejor moverme entre las luces.";
+            return "Debería consultar el diario antes de mover los mecanismos de la galería.";
         }
     }
 }

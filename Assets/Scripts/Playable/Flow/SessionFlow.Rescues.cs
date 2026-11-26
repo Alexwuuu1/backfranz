@@ -13,20 +13,21 @@ namespace Backfranz.Playable
             ("Fotografía","Lázaro","Taller","Linterna de trabajo","bloque-a-item-llave-tecnica",
                 "Perdí mi luz en el laboratorio. En el Taller dejaron una linterna para revisar las máquinas.",
                 "Ahora veo el camino al ascensor. Si encuentras una salida, voy contigo."),
-            ("Auditorio","Nuria","Sala de Simulación","Botiquín portátil","bloque-a-item-tablero-activo",
-                "Me torcí el pie al bajar las gradas. En la sala de simulación tienen un botiquín portátil.",
-                "Con esto puedo apoyar el pie. Me reuniré con los demás junto al portón.")
+            ("Sala de Simulación","Nuria","Sala de Simulación","Botiquín portátil","utileria-maletin-clinico",
+                "Me torcí el pie cuando se cerró el pasillo. En el armario de esta sala hay un botiquín. ¿Puedes traerlo?",
+                "Gracias, ya puedo caminar. Hay una luz verde abajo, junto a la banca. Si me acompañas, podemos dar aviso por radio.")
         };
 
         const int AllRescues=(1<<3)-1;
-        static int RescueTotal=>Rescues.Length+EscortPeople.Length;
+        const int NuriaAid=2;
+        static int RescueTotal=>Rescues.Length-1+EscortPeople.Length;
         int rescueRequests,rescueItems,rescuedPeople;
         readonly GameObject[] rescueItemViews=new GameObject[Rescues.Length];
         readonly GameObject[] rescuePeopleViews=new GameObject[Rescues.Length];
         int evacueesShown;
 
-        Vector2 RescueContact()=>World.Entry(Room)+(Title(Room)=="Auditorio"?new Vector2(-1,1):new Vector2(-2,2));
-        Vector2 RescueItemPoint()=>World.Entry(Room)+new Vector2(2,3);
+        Vector2 RescueContact()=>World.Entry(Room)+new Vector2(-2,2);
+        Vector2 RescueItemPoint(int index)=>index==NuriaAid?World.Cell(Room,4,11):World.Entry(Room)+new Vector2(2,3);
         Vector2 EvacueePoint(int index)=>World.Cell(DarkGround,56,5+2*index);
 
         void ShowEvacuees()
@@ -34,6 +35,7 @@ namespace Backfranz.Playable
             if(Room!=DarkGround)return;
             for(int index=0;index<Rescues.Length;index++)
             {
+                if(index==NuriaAid)continue;
                 if(!HasEscapeFlag(rescuedPeople,index)||HasEscapeFlag(evacueesShown,index))continue;
                 World.MarkEscapeContact(Room,EvacueePoint(index),Rescues[index].Person,"pb-estudiante");
                 evacueesShown|=1<<index;
@@ -47,10 +49,12 @@ namespace Backfranz.Playable
             for(int index=0;index<Rescues.Length;index++)
             {
                 var rescue=Rescues[index];
-                if(rescue.Room==room&&!HasEscapeFlag(rescuedPeople,index))
+                if(index!=NuriaAid&&rescue.Room==room&&!HasEscapeFlag(rescuedPeople,index))
                     rescuePeopleViews[index]=World.MarkEscapeContact(Room,RescueContact(),rescue.Person,"pb-estudiante");
                 if(rescue.Source==room&&!HasEscapeFlag(rescueItems,index))
-                    rescueItemViews[index]=World.MarkEscapeContact(Room,RescueItemPoint(),rescue.Item,rescue.Sprite);
+                    rescueItemViews[index]=index==NuriaAid
+                        ?World.PlaceCollectible(Room,World.Cell(Room,4,12),.70f,rescue.Item,rescue.Sprite)
+                        :World.MarkEscapeContact(Room,RescueItemPoint(index),rescue.Item,rescue.Sprite);
             }
         }
 
@@ -61,6 +65,7 @@ namespace Backfranz.Playable
             {
                 for(int index=0;index<Rescues.Length;index++)
                 {
+                    if(index==NuriaAid)continue;
                     if(!HasEscapeFlag(rescuedPeople,index)||!Near(EvacueePoint(index),.9f))continue;
                     var evacuee=Rescues[index];
                     prompt="Hablar · "+evacuee.Person;
@@ -75,7 +80,7 @@ namespace Backfranz.Playable
             {
                 int index=i;
                 var rescue=Rescues[index];
-                if(rescue.Room==room&&!HasEscapeFlag(rescuedPeople,index)&&Near(RescueContact(),.9f))
+                if(index!=NuriaAid&&rescue.Room==room&&!HasEscapeFlag(rescuedPeople,index)&&Near(RescueContact(),.9f))
                 {
                     prompt="Hablar · "+rescue.Person;
                     if(interact)
@@ -92,7 +97,7 @@ namespace Backfranz.Playable
                     }
                     return true;
                 }
-                if(rescue.Source==room&&!HasEscapeFlag(rescueItems,index)&&Near(RescueItemPoint(),.9f))
+                if(rescue.Source==room&&!HasEscapeFlag(rescueItems,index)&&Near(RescueItemPoint(index),.9f))
                 {
                     prompt="Recoger · "+rescue.Item;
                     if(interact)
@@ -113,6 +118,7 @@ namespace Backfranz.Playable
             var lines=new System.Text.StringBuilder("ENTREGAS");
             for(int index=0;index<Rescues.Length;index++)
             {
+                if(index==NuriaAid&&HasEscapeFlag(escortSeen,NuriaEscort))continue;
                 if(!HasEscapeFlag(rescueRequests,index)&&!HasEscapeFlag(rescueItems,index))continue;
                 var rescue=Rescues[index];
                 lines.Append("\n\n").Append(rescue.Person).Append(" · ").Append(rescue.Room).AppendLine();
@@ -127,9 +133,18 @@ namespace Backfranz.Playable
         int RescuedCount()
         {
             int count=0;
-            for(int index=0;index<Rescues.Length;index++)if(HasEscapeFlag(rescuedPeople,index))count++;
+            for(int index=0;index<Rescues.Length;index++)if(index!=NuriaAid&&HasEscapeFlag(rescuedPeople,index))count++;
             for(int index=0;index<EscortPeople.Length;index++)if(HasEscapeFlag(escortedPeople,index))count++;
             return count;
+        }
+
+        string HealthRescueThought()
+        {
+            if(escorting==NuriaEscort+1&&(Room==EscortHall(NuriaEscort)||IsEscortSource(NuriaEscort,Room)))
+                return "Tengo que llevar a Nuria a la luz verde junto a la banca del pasillo inferior.";
+            if(!IsEscortSource(NuriaEscort,Room)||!HasEscapeFlag(rescueRequests,NuriaAid)||HasEscapeFlag(escortSeen,NuriaEscort))return null;
+            return HasEscapeFlag(rescueItems,NuriaAid)?"Ya tengo el botiquín. Puedo ayudar a Nuria junto a la camilla.":
+                "Debería buscar el botiquín en el armario junto a las camillas.";
         }
     }
 }

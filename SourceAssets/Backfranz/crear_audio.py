@@ -107,6 +107,36 @@ def bell(hz, duration, decay=.21, attack=.014):
     return harmonic * (1 - np.exp(-t / attack)) * np.exp(-t / decay)
 
 
+def voice_pulse(hz, formant, duration):
+    t = np.arange(seconds(duration)) / RATE
+    phase = 2 * np.pi * hz * (t - .11 * t*t / duration)
+    pulse = np.zeros_like(t)
+    for harmonic in range(1, 10):
+        frequency = harmonic * hz
+        resonance = np.exp(-.5 * ((frequency - formant) / 185) ** 2)
+        pulse += (.19 + resonance) * np.sin(harmonic * phase) / harmonic ** .7
+    envelope = np.sin(np.pi * t / duration) ** 1.4
+    return pulse * envelope
+
+
+def dialogue_voices():
+    emit("dialogo-yamil", voice_pulse(173, 570, .051), -12)
+    emit("dialogo-persona", voice_pulse(228, 770, .048), -13)
+
+
+def auditorium_recording():
+    tape = blank(1.55)
+    for start, hz, formant, duration in (
+        (.16, 182, 960, .19), (.34, 176, 710, .20), (.55, 162, 530, .22),
+        (.86, 169, 1080, .16), (1.02, 152, 630, .25),
+    ):
+        place(tape, voice_pulse(hz, formant, duration), start)
+    hiss = np.random.default_rng(412).normal(size=len(tape))
+    tape += .14 * filter_band(hiss, 780, 3200)
+    distorted = np.tanh(filter_band(tape, 260, 2800) * 2.5)
+    emit("auditorio-grabadora", room_echo(distorted, .28), -12)
+
+
 def footsteps(cache):
     for i, metal in enumerate((1, 4, 5, 8, 9)):
         for target, material, cutoff, peak in (
@@ -138,8 +168,7 @@ def effects(cache):
     place(confirm, bell(493.88, .35, .095) * .52, .027)
     place(confirm, bell(659.25, .27, .09) * .28, .085)
     emit("ui-confirmar", confirm, -14)
-    emit("dialogo-yamil", bell(196, .085, .025, .004), -19)
-    emit("dialogo-persona", bell(261.63, .078, .025, .003), -20)
+    dialogue_voices()
 
     for name, source, peak, cutoff in (
         ("puerta-vidrio", "door_open", -9, 6200),
@@ -270,6 +299,7 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     footsteps(args.sources)
     effects(args.sources)
+    auditorium_recording()
     rooms(args.sources)
     themes()
 

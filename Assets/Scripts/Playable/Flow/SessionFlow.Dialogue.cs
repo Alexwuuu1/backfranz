@@ -210,17 +210,22 @@ namespace Backfranz.Playable
             ShowDialogueLine();
         }
 
+        int voicedLetters;
+        float nextVoicePulse;
+
         void ShowDialogueLine()
         {
             var line = dialogue[dialogueIndex];
             dialogueSpeaker.text = line.Speaker;
             dialogueReveal = 0;
             visibleCharacters = 0;
+            voicedLetters=0;
+            nextVoicePulse=0;
+            Sound.StopDialogueVoice();
             dialogueBody.text = "";
             dialogueContinue.SetActive(true);
             dialogueChoices.SetActive(false);
             dialoguePortrait.sprite = CampusLook.Sprite(CampusLook.Person(line.Speaker,line.Sprite));
-            Sound.Dialogue(line.Speaker=="Yamil");
             string action = dialogueIndex + 1 == dialogue.Length ? "Cerrar" : "Continuar";
             dialogueAction.text = Application.isMobilePlatform ? action : action + " [E]";
         }
@@ -228,13 +233,23 @@ namespace Backfranz.Playable
         void UpdateDialogue()
         {
             if (!DialogueOpen) return;
-            var line = dialogue[dialogueIndex].Text;
-            if (visibleCharacters >= line.Length) return;
+            var line = dialogue[dialogueIndex];
+            if (visibleCharacters >= line.Text.Length) return;
             dialogueReveal += Time.unscaledDeltaTime * 52f;
-            int count = Mathf.Min(line.Length, Mathf.FloorToInt(dialogueReveal));
+            int count = Mathf.Min(line.Text.Length, Mathf.FloorToInt(dialogueReveal));
             if (count == visibleCharacters) return;
+            int pulse=-1;
+            for(int i=visibleCharacters;i<count;i++){
+                if(!char.IsLetterOrDigit(line.Text[i]))continue;
+                if(voicedLetters%4==0)pulse=i;
+                voicedLetters++;
+            }
+            if(pulse>=0&&Time.unscaledTime>=nextVoicePulse){
+                Sound.DialogueVoice(line.Speaker,line.Text[pulse],pulse);
+                nextVoicePulse=Time.unscaledTime+.06f;
+            }
             visibleCharacters = count;
-            dialogueBody.text = line.Substring(0,count);
+            dialogueBody.text = line.Text.Substring(0,count);
         }
 
         void AdvanceDialogue()
@@ -244,6 +259,7 @@ namespace Backfranz.Playable
             string current = dialogue[dialogueIndex].Text;
             if (visibleCharacters < current.Length)
             {
+                Sound.StopDialogueVoice();
                 visibleCharacters = current.Length;
                 dialogueBody.text = current;
                 return;
@@ -272,6 +288,7 @@ namespace Backfranz.Playable
 
         void CloseDialogue(bool accepted)
         {
+            Sound.StopDialogueVoice();
             dialogue = null;
             dialoguePanel.SetActive(false);
             arrivalTitle.SetActive(false);
@@ -282,6 +299,7 @@ namespace Backfranz.Playable
             var onComplete = dialogueCompleted;
             dialogueCompleted = null;
             if(accepted)onComplete?.Invoke();
+            RefreshHUD();
         }
     }
 }

@@ -6,11 +6,11 @@ namespace Backfranz.Playable
 {
     public sealed partial class SessionFlow
     {
-        static readonly (string Room,string Name,string Brief)[] RadioCrew=
+        static readonly (int Floor,string Room,string Name,string Brief)[] RadioCrew=
         {
-            ("Dirección de Carrera","Camila","Puedo leer el plano y cantar el rumbo por radio. No tengo guantes para tocar el mecanismo."),
-            ("Histología y Fisiología","Iván","Tengo guantes y herramientas para mantener abierto el mecanismo. Dejé mi radio en el laboratorio."),
-            ("Aula de grupos","Paula","Conozco el protocolo de primeros auxilios. Puedo recibir a quienes crucen y revisar si necesitan ayuda.")
+            (1,"Dirección de Carrera","Camila","Puedo leer el plano y cantar el rumbo por radio. No tengo guantes para tocar el mecanismo."),
+            (2,"Histología y Fisiología","Iván","Tengo guantes y herramientas para mantener abierto el mecanismo. Dejé mi radio en el laboratorio."),
+            (5,"Aula de grupos","Paula","Conozco el protocolo de primeros auxilios. Puedo recibir a quienes crucen y revisar si necesitan ayuda.")
         };
         static readonly string[] CrewPosts={"Mando mecánico","Recepción de evacuados","Guía por radio"};
         static readonly int[] ExpectedCrew={1,2,0};
@@ -96,8 +96,9 @@ namespace Backfranz.Playable
         string CrewObjective()
         {
             for(int i=0;i<RadioCrew.Length;i++)
-                if(!HasEscapeFlag(crewContacts,i))return "Busca a "+RadioCrew[i].Name+" · "+RadioCrew[i].Room;
-            return "PB · coordina la evacuación";
+                if(!HasEscapeFlag(crewContacts,i))
+                    return ThoughtOnFloor(RadioCrew[i].Floor,"Tengo que buscar a "+RadioCrew[i].Name+" en "+RadioCrew[i].Room);
+            return ThoughtOnFloor(0,"Ya hablé con todos. Tengo que repartir los puestos de evacuación en la mesa");
         }
 
         void RefreshCrewPanel()

@@ -85,8 +85,8 @@ namespace Backfranz.Playable
         {
             for(int index=0;index<SignalStations.Length;index++)
                 if(!HasEscapeFlag(signalSolved,index))
-                    return Floors[SignalStations[index].Floor]+" · "+SignalStations[index].Name;
-            return "PB · abre el portón exterior";
+                    return ThoughtOnFloor(SignalStations[index].Floor,"Tengo que poner en marcha «"+SignalStations[index].Name+"»");
+            return ThoughtOnFloor(0,"La red de señales ya funciona. Puedo volver a la entrada");
         }
 
         void OpenSignalStation(int index)

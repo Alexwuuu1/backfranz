@@ -137,8 +137,9 @@ namespace Backfranz.Playable
         string AcousticObjective()
         {
             for(int i=0;i<AcousticClues.Length;i++)
-                if(!HasEscapeFlag(acousticClues,i))return "3 · busca la pista en "+AcousticClues[i].Room;
-            return "3 · cruza las placas de Sonido";
+                if(!HasEscapeFlag(acousticClues,i))
+                    return ThoughtOnFloor(3,"Debería buscar una pista para el canal acústico en "+AcousticClues[i].Room);
+            return ThoughtOnFloor(3,"Tengo que seguir las pistas para cruzar las placas de Sonido");
         }
     }
 }

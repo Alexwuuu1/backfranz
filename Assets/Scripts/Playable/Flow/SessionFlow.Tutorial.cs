@@ -70,7 +70,7 @@ namespace Backfranz.Playable
             else if (!HasCard)
             {
                 tutorialTitle.text = "TUTORIAL · 4/4 · TU PRIMER OBJETIVO";
-                tutorialBody.text = "Sigue la misión de arriba. Sube las gradas, entra al Bloque A y habla en la ventanilla de Recepción.";
+                tutorialBody.text = "Consulta Misión abajo. Sube las gradas, entra al Bloque A y habla en la ventanilla de Recepción.";
             }
             else
             {

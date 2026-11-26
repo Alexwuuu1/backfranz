@@ -1,6 +1,6 @@
 # Fuentes gráficas de Backfranz
 
-`Editables/` contiene el arte nuevo en formato Aseprite `.ase`: suelos, paredes, muebles, objetos interactivos, botones, iconos, Yamil y la sombra. Los nuevos gráficos tienen tres capas editables (sombras, volumen/color y detalles/luces). Yamil incluye 16 fotogramas y cuatro etiquetas de dirección; la sombra tiene cuatro fotogramas.
+`Editables/` contiene el arte en formato Aseprite `.ase` con tres capas editables para sombras, color y detalles. El sprite de Yamil mide 40 × 56 px e incluye 24 fotogramas de caminata, 16 de interacción y 16 posiciones compatibles con las referencias anteriores. La sombra tiene cuatro fotogramas.
 
 `Importados/` conserva en `.ase` los PNG anteriores del proyecto, incluidos los fondos del menú. Son imágenes importadas en **una capa**; no se recuperaron ni se inventaron capas originales. Los cuatro archivos históricos del equipo permanecen en `SourceAssets/Aseprite/`.
 

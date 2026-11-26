@@ -13,9 +13,15 @@ namespace Backfranz.Playable
             (4,"Cámara Gesell",-2,4,5,"Marcos","Extremo oeste del pasillo inferior.",
                 "El espejo todavía refleja el aula vacía, pero escucho a alguien detrás. Si vas conmigo, llegamos al refugio del extremo oeste del pasillo inferior."),
             (5,"Aula de grupos",2,26,6,"Elena","Pasillo inferior, al este, pasando las mesas.",
-                "Volví a buscar a una amiga y se cerraron las gradas. Vi una señal verde al este, pasando las mesas del pasillo de abajo. Espera si me quedo atrás.")
+                "Volví a buscar a una amiga y se cerraron las gradas. Sigue encendida la señal verde del este. Si enciendes una lámpara más cerca con el cable del Taller, también podemos llamar desde allí."),
+            (0,"Auditorio",0,3,17,"Mauro","Vestíbulo oeste, junto a la luz verde.",
+                "Lo que está entre las butacas se gira cuando cruje el altavoz. Si cruzamos mientras está al otro lado, podemos llegar a la luz verde del vestíbulo. La puerta de servicio se cierra sola. Con una cuña podríamos salir por ahí."),
+            (2,"Sala de Simulación",0,23,7,"Nuria","Pasillo inferior, junto a la banca de la luz verde.","")
         };
-        const int EscortMask=(1<<3)-1;
+        const int MauroEscort=3;
+        const int NuriaEscort=4;
+        const int ElenaEscort=2;
+        const int EscortMask=(1<<5)-1;
         int escortSeen, escortedPeople, escorting;
         bool escortInHall;
         Vector2 escortLocalFeet;
@@ -27,11 +33,18 @@ namespace Backfranz.Playable
         Vector2 escortRouteGoal;
         int escortWaypoint;
         float nextEscortRoute, escortStride;
-        Vector2 EscortContact(int index) => World.Entry(Room)+new Vector2(EscortPeople[index].OffsetX,2);
+        Vector2 EscortContact(int index) => index==MauroEscort?World.Cell(Room,4,12):
+            index==NuriaEscort?World.Cell(Room,7,10):
+            World.Entry(Room)+new Vector2(EscortPeople[index].OffsetX,2);
         int EscortHall(int index) => ForFloor(EscortPeople[index].Floor,true);
         Vector2 EscortRefuge(int index) => World.Cell(EscortHall(index),EscortPeople[index].SafeX,EscortPeople[index].SafeY);
-        Vector2 EscortArrival(int index) => World.Cell(DarkGround,60,7+2*index);
-        bool IsEscortSource(int index,int room) => IsDarkUpperInterior(room)&&UpperInteriorName(room)==EscortPeople[index].Room;
+        Vector2 EscortArrival(int index) => index switch{
+            MauroEscort=>World.Cell(DarkGround,59,12),
+            NuriaEscort=>World.Cell(DarkGround,56,9),
+            _=>World.Cell(DarkGround,60,7+2*index)
+        };
+        bool IsEscortSource(int index,int room) => index==MauroEscort?room==DarkAuditorium:
+            IsDarkUpperInterior(room)&&UpperInteriorName(room)==EscortPeople[index].Room;
 
         void EnterEscortRoom(int previous)
         {
@@ -146,7 +159,7 @@ namespace Backfranz.Playable
         bool TryEscortInteraction(bool interact,out string prompt)
         {
             prompt="";
-            if(IsDarkUpperInterior(Room))
+            if(IsDarkUpperInterior(Room)||Room==DarkAuditorium)
                 for(int i=0;i<EscortPeople.Length;i++)
                 {
                     if(HasEscapeFlag(escortedPeople,i)||!IsEscortSource(i,Room))continue;
@@ -154,7 +167,8 @@ namespace Backfranz.Playable
                     var person=EscortPeople[i];
                     if(escorting==index+1)
                     {
-                        if(!escortInHall&&Near(World.UpperInteriorExit(Room),1.05f)&&!EscortCloseEnough())
+                        var exit=index==MauroEscort?World.InteriorExit(Room):World.UpperInteriorExit(Room);
+                        if(!escortInHall&&Near(exit,index==MauroEscort?1.3f:1.05f)&&!EscortCloseEnough())
                         {
                             prompt="Espera a "+person.Name;
                             if(interact)Notify(person.Name+" viene detrás. Espera antes de cruzar la puerta.");
@@ -163,6 +177,21 @@ namespace Backfranz.Playable
                         continue;
                     }
                     if(!Near(EscortContact(i),.86f))continue;
+                    if(index==NuriaEscort)
+                    {
+                        bool ready=HasEscapeFlag(rescueItems,NuriaAid);
+                        var aid=Rescues[NuriaAid];
+                        prompt=ready&&escorting==0?"Ayudar con el botiquín · Nuria":"Hablar · Nuria";
+                        if(interact)
+                        {
+                            rescueRequests|=1<<NuriaAid;
+                            if(ready&&escorting>0)
+                                Notify("Nuria esperará aquí. Primero acompaña a "+EscortPeople[escorting-1].Name+".",4);
+                            else OpenDialogue(new[]{new DialogueLine(person.Name,"pb-estudiante",ready?aid.Thanks:aid.Request)},
+                                ready?()=>StartEscort(NuriaEscort):null);
+                        }
+                        return true;
+                    }
                     prompt="Hablar · "+person.Name;
                     if(interact)
                     {
@@ -186,7 +215,8 @@ namespace Backfranz.Playable
                             "El equipo me trajo hasta aquí desde el refugio. Ahora esperamos junto al portón.")});
                         return true;
                     }
-                    if(escorting!=i+1||!escortInHall||Room!=EscortHall(i)||!Near(EscortRefuge(i),.94f))continue;
+                    if(escorting!=i+1||!escortInHall||Room!=EscortHall(i))continue;
+                    if(!Near(EscortRefuge(i),.94f)&&!(i==ElenaEscort&&NearWorkshopRefuge()))continue;
                     prompt=EscortCloseEnough()?"Dar aviso por radio · "+EscortPeople[i].Name:"Espera a "+EscortPeople[i].Name;
                     if(interact)
                     {
@@ -231,9 +261,13 @@ namespace Backfranz.Playable
             {
                 if(!HasEscapeFlag(escortSeen,i))continue;
                 var person=EscortPeople[i];
-                lines.Append("\n\n").Append(person.Name).Append(" · Piso ").Append(person.Floor).AppendLine();
+                lines.Append("\n\n").Append(person.Name).Append(person.Floor==0?" · Planta baja":" · Piso "+person.Floor).AppendLine();
                 if(HasEscapeFlag(escortedPeople,i))lines.Append("Con el equipo en planta baja.");
-                else if(escorting==i+1&&escortInHall)lines.Append(person.RefugeDirection).Append(" Busca la señal verde.");
+                else if(escorting==i+1&&escortInHall)
+                {
+                    if(i==ElenaEscort&&workshopLamp>0)lines.Append("Lámpara activa en ").Append(WorkshopLampLocation()).Append('.');
+                    else lines.Append(person.RefugeDirection).Append(" Busca la señal verde.");
+                }
                 else lines.Append("Te espera en ").Append(person.Room).Append('.');
             }
             if(escortSeen==0)lines.Append("\n\nHabla con quienes siguen en las salas.");

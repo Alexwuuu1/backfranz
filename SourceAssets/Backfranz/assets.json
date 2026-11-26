@@ -209,10 +209,50 @@
       "Assets/Resources/Backfranz/Art/yamil-12.png",
       "Assets/Resources/Backfranz/Art/yamil-13.png",
       "Assets/Resources/Backfranz/Art/yamil-14.png",
-      "Assets/Resources/Backfranz/Art/yamil-15.png"
+      "Assets/Resources/Backfranz/Art/yamil-15.png",
+      "Assets/Resources/Backfranz/Art/yamil-16.png",
+      "Assets/Resources/Backfranz/Art/yamil-17.png",
+      "Assets/Resources/Backfranz/Art/yamil-18.png",
+      "Assets/Resources/Backfranz/Art/yamil-19.png",
+      "Assets/Resources/Backfranz/Art/yamil-20.png",
+      "Assets/Resources/Backfranz/Art/yamil-21.png",
+      "Assets/Resources/Backfranz/Art/yamil-22.png",
+      "Assets/Resources/Backfranz/Art/yamil-23.png",
+      "Assets/Resources/Backfranz/Art/yamil-24.png",
+      "Assets/Resources/Backfranz/Art/yamil-25.png",
+      "Assets/Resources/Backfranz/Art/yamil-26.png",
+      "Assets/Resources/Backfranz/Art/yamil-27.png",
+      "Assets/Resources/Backfranz/Art/yamil-28.png",
+      "Assets/Resources/Backfranz/Art/yamil-29.png",
+      "Assets/Resources/Backfranz/Art/yamil-30.png",
+      "Assets/Resources/Backfranz/Art/yamil-31.png",
+      "Assets/Resources/Backfranz/Art/yamil-32.png",
+      "Assets/Resources/Backfranz/Art/yamil-33.png",
+      "Assets/Resources/Backfranz/Art/yamil-34.png",
+      "Assets/Resources/Backfranz/Art/yamil-35.png",
+      "Assets/Resources/Backfranz/Art/yamil-36.png",
+      "Assets/Resources/Backfranz/Art/yamil-37.png",
+      "Assets/Resources/Backfranz/Art/yamil-38.png",
+      "Assets/Resources/Backfranz/Art/yamil-39.png",
+      "Assets/Resources/Backfranz/Art/yamil-40.png",
+      "Assets/Resources/Backfranz/Art/yamil-41.png",
+      "Assets/Resources/Backfranz/Art/yamil-42.png",
+      "Assets/Resources/Backfranz/Art/yamil-43.png",
+      "Assets/Resources/Backfranz/Art/yamil-44.png",
+      "Assets/Resources/Backfranz/Art/yamil-45.png",
+      "Assets/Resources/Backfranz/Art/yamil-46.png",
+      "Assets/Resources/Backfranz/Art/yamil-47.png",
+      "Assets/Resources/Backfranz/Art/yamil-48.png",
+      "Assets/Resources/Backfranz/Art/yamil-49.png",
+      "Assets/Resources/Backfranz/Art/yamil-50.png",
+      "Assets/Resources/Backfranz/Art/yamil-51.png",
+      "Assets/Resources/Backfranz/Art/yamil-52.png",
+      "Assets/Resources/Backfranz/Art/yamil-53.png",
+      "Assets/Resources/Backfranz/Art/yamil-54.png",
+      "Assets/Resources/Backfranz/Art/yamil-55.png"
     ],
     "layers": 3,
-    "frames": 16
+    "frames": 56
   },
   {
     "source": "SourceAssets/Backfranz/Editables/pb-estudiante-camina.ase",
@@ -7683,6 +7723,38 @@
     "frames": 1
   },
   {
+    "source": "SourceAssets/Backfranz/Editables/utileria-radio-mano.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/utileria-radio-mano.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/backfranz-utileria-radio-mano.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/backfranz-utileria-radio-mano.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/utileria-cuna-goma.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/utileria-cuna-goma.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/backfranz-utileria-cuna-goma.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/backfranz-utileria-cuna-goma.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
     "source": "SourceAssets/Backfranz/Editables/utileria-lapicero.ase",
     "exports": [
       "Assets/Resources/Backfranz/Art/utileria-lapicero.png"
@@ -7710,6 +7782,22 @@
     "source": "SourceAssets/Backfranz/Editables/backfranz-utileria-borrador.ase",
     "exports": [
       "Assets/Resources/Backfranz/Art/backfranz-utileria-borrador.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/utileria-tiza-blanca.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/utileria-tiza-blanca.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/backfranz-utileria-tiza-blanca.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/backfranz-utileria-tiza-blanca.png"
     ],
     "layers": 3,
     "frames": 1
@@ -7758,6 +7846,22 @@
     "source": "SourceAssets/Backfranz/Editables/backfranz-utileria-multimetro.ase",
     "exports": [
       "Assets/Resources/Backfranz/Art/backfranz-utileria-multimetro.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/utileria-prensa-banco.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/utileria-prensa-banco.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/backfranz-utileria-prensa-banco.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/backfranz-utileria-prensa-banco.png"
     ],
     "layers": 3,
     "frames": 1
@@ -8033,5 +8137,69 @@
     ],
     "layers": 3,
     "frames": 7
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/utileria-bomba-presion.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/utileria-bomba-presion.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/backfranz-utileria-bomba-presion.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/backfranz-utileria-bomba-presion.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/utileria-medidor-industrial.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/utileria-medidor-industrial.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/backfranz-utileria-medidor-industrial.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/backfranz-utileria-medidor-industrial.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/utileria-ventilador-muro.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/utileria-ventilador-muro.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/backfranz-utileria-ventilador-muro.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/backfranz-utileria-ventilador-muro.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/utileria-base-lavamanos.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/utileria-base-lavamanos.png"
+    ],
+    "layers": 3,
+    "frames": 1
+  },
+  {
+    "source": "SourceAssets/Backfranz/Editables/backfranz-utileria-base-lavamanos.ase",
+    "exports": [
+      "Assets/Resources/Backfranz/Art/backfranz-utileria-base-lavamanos.png"
+    ],
+    "layers": 3,
+    "frames": 1
   }
 ]

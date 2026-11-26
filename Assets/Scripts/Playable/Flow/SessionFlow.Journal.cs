@@ -19,7 +19,7 @@ namespace Backfranz.Playable
 
         void CreateEscapeJournal(Transform safe)
         {
-            journalButton = Button(safe, "Diario", new Vector2(.39f,.91f), new Vector2(.52f,.98f), OpenJournal, 22).gameObject;
+            journalButton = Button(hudControls,"Diario",new Vector2(.84f,0f),Vector2.one,OpenJournal,20).gameObject;
             journalButton.SetActive(false);
             var journal = Panel(safe, "Diario de escape", new Vector2(.13f,.09f), new Vector2(.87f,.90f));
             journalPanel = journal.gameObject;

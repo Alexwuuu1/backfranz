@@ -48,7 +48,6 @@ namespace Backfranz.Playable
 
         static readonly (string Room,string Name,string Sprite,string Text)[] EscapeEncounters =
         {
-            ("Auditorio","Mauro","pb-estudiante","Estábamos ensayando cuando se apagaron las luces. El telón siguió moviéndose después de que cerramos las ventanas."),
             ("Café","Rita","pb-recepcionista","Hay siete tazas y nadie las pidió. Si sales, acuérdate de avisar que todavía hay gente aquí."),
             ("Game Room","Nico","pb-estudiante","Intenté abrir el portón con el mando de la consola. Obviamente no funcionó. Busca en el taller un mando de verdad."),
             ("Financiero","Elías","pb-guardia","Los relés de emergencia van por pares. No pruebes todas las líneas a la vez."),
@@ -67,11 +66,11 @@ namespace Backfranz.Playable
             ("Aula de grupos","Sofía","pb-estudiante","En el selector del extremo solo cambian dos lámparas. Los del centro afectan tres."),
             ("Baños","Mica","pb-estudiante","Escuché la sirena por las tuberías. Si consigues que suene otra vez, quizá los que quedan sepan hacia dónde ir.")
         };
-        static readonly (string Room,string Item,string Sprite)[] RelayParts =
+        static readonly (int Floor,string Room,string Item,string Sprite)[] RelayParts =
         {
-            ("Posgrado","Puente Norte","bloque-a-item-fusible"),
-            ("Histología y Fisiología","Puente Este","bloque-a-item-llave-tecnica"),
-            ("Laboratorio PC","Puente Sur","bloque-a-item-tablero-activo")
+            (1,"Posgrado","Puente Norte","bloque-a-item-fusible"),
+            (2,"Histología y Fisiología","Puente Este","bloque-a-item-llave-tecnica"),
+            (3,"Laboratorio PC","Puente Sur","bloque-a-item-tablero-activo")
         };
         const int RelayPartsMask=(1<<3)-1;
 
@@ -126,7 +125,12 @@ namespace Backfranz.Playable
             int floor=Floor(Room);
             foreach(var task in EscapeTasks)
             {
-                if(task.Floor==floor)World.MarkEscapeContact(Room,EscapePoint(task,false),task.Name,"bloque-a-panel-horario");
+                if(task.Floor==floor)
+                {
+                    if(floor==5)World.PlaceCollectible(Room,World.Cell(Room,15,16),.83f,task.Name,"bloque-a-panel-horario");
+                    else if(floor==6)World.PlaceCollectible(Room,World.Cell(Room,15,17),.92f,task.Name,"bloque-a-panel-horario");
+                    else World.MarkEscapeContact(Room,EscapePoint(task,false),task.Name,"bloque-a-panel-horario");
+                }
                 if(task.ClueFloor==floor)World.MarkEscapeContact(Room,EscapePoint(task,true),task.Witness,WitnessSprite(task));
             }
         }
@@ -178,9 +182,11 @@ namespace Backfranz.Playable
             if(TryGalleryInteraction(interact,out prompt))return true;
             if(TryInvestigationInteraction(interact,out prompt))return true;
             if(TryRescueInteraction(interact,out prompt))return true;
+            if(TryAuditoriumRescue(interact,out prompt))return true;
             if(TryEscortInteraction(interact,out prompt))return true;
             if(TryMaintenanceInteraction(interact,out prompt))return true;
             if(TrySignalInteraction(interact,out prompt))return true;
+            if(TryServicesPass(interact,out prompt))return true;
             if(TryBlackoutInteraction(interact,out prompt))return true;
             if(TryAcousticInteraction(interact,out prompt))return true;
             if(TryCrewInteraction(interact,out prompt))return true;
@@ -239,25 +245,30 @@ namespace Backfranz.Playable
 
         string EscapeObjective()
         {
-            if(finaleStage==1)return "PB · alcanza la palanca antes del portón";
-            if(finaleStage==2)return "PB · elige una salida";
+            if(finaleStage==1)return ThoughtOnFloor(0,"Tengo que llegar a la palanca antes del portón");
+            if(finaleStage==2)return ThoughtOnFloor(0,"Puedo salir por el portón, por el paso de servicio o por la puerta estrecha");
             for(int i=0;i<EscapeTasks.Length;i++)
                 if(!HasEscapeFlag(escapeSolved,i)){
                     var task=EscapeTasks[i];
                     if(i==EscapeTasks.Length-1&&EvacuationObjective() is string pending)return pending;
                     if(i==3&&escapeParts!=RelayPartsMask)
                         for(int part=0;part<RelayParts.Length;part++)
-                            if(!HasEscapeFlag(escapeParts,part))return "Recupera un puente · "+RelayParts[part].Room;
-                    return HasEscapeFlag(escapeClues,i)?Floors[task.Floor]+" · "+task.Name:
-                        Floors[task.ClueFloor]+" · busca a "+task.Witness;
+                            if(!HasEscapeFlag(escapeParts,part))
+                                return ThoughtOnFloor(RelayParts[part].Floor,
+                                    "Me falta el "+RelayParts[part].Item.ToLowerInvariant()+". Debería buscarlo en "+RelayParts[part].Room);
+                    if(HasEscapeFlag(escapeClues,i))
+                        return ThoughtOnFloor(task.Floor,"Ya tengo la pista. Debería revisar «"+task.Name+"»");
+                    string article=task.Witness=="Técnico"||task.Witness=="Estudiante de audiovisual"?"el ":"la ";
+                    return ThoughtOnFloor(task.ClueFloor,"Tengo que hablar con "+article+task.Witness.ToLowerInvariant());
                 }
-            return EvacuationObjective()??"PB · abre el portón exterior";
+            return EvacuationObjective()??ThoughtOnFloor(0,"Ya puedo abrir el portón exterior");
         }
 
         string EvacuationObjective()
         {
             if(!InvestigationComplete)return InvestigationObjective();
-            if(!maintenanceApproved)return "-1 · calibra el regulador";
+            if(!maintenanceApproved)return Room==Basement?MaintenanceThought():
+                "Tengo que bajar al subsuelo (piso −1) en el ascensor y revisar el regulador.";
             if(!SignalsComplete)return SignalObjective();
             if(!blackoutRebuilt)return BlackoutObjective();
             if(!acousticsApproved)return AcousticObjective();

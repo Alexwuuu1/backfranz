@@ -74,6 +74,7 @@ public sealed class BackfranzUI : MonoBehaviour
     }
     public void Continue()
     {
+        if(loading)return;
         if(SessionFlow.RequestContinue())Load("Nivel01");
         else status.text="No hay una partida guardada válida";
     }
@@ -86,6 +87,7 @@ public sealed class BackfranzUI : MonoBehaviour
     void Focus(GameObject target) { EventSystem.current.SetSelectedGameObject(null); EventSystem.current.SetSelectedGameObject(target); }
     void Panel(GameObject panel)
     {
+        if(loading)return;
         if(!modal) modalTrigger=EventSystem.current.currentSelectedGameObject;
         sound.Click(); if(modal) modal.transform.parent.gameObject.SetActive(false); menu.SetActive(false);
         modal=panel;modal.transform.parent.gameObject.SetActive(true);
@@ -113,7 +115,12 @@ public sealed class BackfranzUI : MonoBehaviour
         Focus(modalTrigger&&modalTrigger.activeInHierarchy?modalTrigger:firstButton.gameObject);
         modalTrigger=null;
     }
-    public void Play() { SessionFlow.RequestNewGame();Load("Nivel01"); }
+    public void Play()
+    {
+        if(loading)return;
+        SessionFlow.RequestNewGame();
+        Load("Nivel01");
+    }
     public void MainMenu()
     {
         if(!gameplay){Load("MenuPrincipal");return;}
@@ -175,7 +182,20 @@ public sealed class BackfranzUI : MonoBehaviour
     {
         if(loading) return;
         if(!Application.CanStreamedLevelBeLoaded(scene)) { status.text="Escena no incluida: "+scene;return; }
-        loading=true;sound.Click();Time.timeScale=1;SceneManager.LoadSceneAsync(scene);
+        loading=true;
+        Time.timeScale=1;
+        if(!gameplay&&scene=="Nivel01"&&TryGetComponent<BackfranzTransition>(out var title)){
+            StartCoroutine(LoadFromTitle(scene,title));
+            return;
+        }
+        sound.Click();
+        SceneManager.LoadSceneAsync(scene);
+    }
+
+    System.Collections.IEnumerator LoadFromTitle(string scene,BackfranzTransition title)
+    {
+        yield return title.PlayDeparture();
+        SceneManager.LoadSceneAsync(scene);
     }
     internal void SetPauseLocationLabel(Text label)=>pauseLocation=label;
     public void Pause()

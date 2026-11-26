@@ -20,8 +20,10 @@ namespace Backfranz.Playable
                 return Vector2.ClampMagnitude(axis, 1);
             }
         }
-        float animationTime;
+        const float ReachDuration=.30f;
+        float strideDistance;
         float stepDistance;
+        float reachStarted=-1;
         SpriteRenderer view;
         public Vector2 Facing { get; private set; } = Vector2.down;
         public Vector2 Position => transform.position;
@@ -39,14 +41,37 @@ namespace Backfranz.Playable
             Facing=direction.normalized;
             if(view)view.sprite=CampusLook.Student(Facing,0);
         }
+
+        internal void Reach(Vector2 direction)
+        {
+            if(direction.sqrMagnitude>.001f)Face(direction);
+            reachStarted=Time.unscaledTime;
+            if(view)view.sprite=CampusLook.YamilReach(Facing,1);
+        }
+
+        bool Reaching => reachStarted>=0&&Time.unscaledTime-reachStarted<ReachDuration;
+
+        void Pose(bool moving)
+        {
+            if(!view)return;
+            if(Reaching){
+                float age=Time.unscaledTime-reachStarted;
+                int frame=age<.08f?1:age<.22f?2:3;
+                view.sprite=CampusLook.YamilReach(Facing,frame);
+            }else{
+                reachStarted=-1;
+                view.sprite=moving?CampusLook.YamilWalk(Facing,(int)(strideDistance*4.5f)%6):CampusLook.Student(Facing,0);
+            }
+            view.sortingOrder=CampusLook.Depth(transform.position.y);
+        }
         public void Interact() { if (Time.timeScale > 0 && !session.Finished) session.Interact(); }
         void Update()
         {
-            if (Time.timeScale == 0 || session.Finished || session.Crossing) { TouchAxis(Vector2.zero); return; }
+            if (Time.timeScale == 0 || session.Finished || session.Crossing) { TouchAxis(Vector2.zero); Pose(false); return; }
             bool wasTalking = session.DialogueOpen;
             if (Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.Space) ||
                 wasTalking && Input.GetKeyDown(KeyCode.Return)) Interact();
-            if (wasTalking || session.DialogueOpen || Time.timeScale==0) return;
+            if (wasTalking || session.DialogueOpen || session.Crossing || Time.timeScale==0) { Pose(false); return; }
             var axis = Vector2.ClampMagnitude(new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")) + TouchInput, 1);
             Vector2 previous = Position;
             Move(axis, Time.deltaTime);
@@ -59,16 +84,13 @@ namespace Backfranz.Playable
                     stepDistance-=1.05f;
                 }
             }
-            if (axis.sqrMagnitude > .01f) Facing = axis;
-            animationTime += moved;
-            view.sprite = CampusLook.Student(Facing, moved > .001f ? (int)(animationTime * 2.5f) % 4 : 0);
-            view.sortingOrder = CampusLook.Depth(transform.position.y);
         }
         public void Move(Vector2 axis, float delta)
         {
             if (session.DialogueOpen || session.Crossing) return;
             // Substeps also prevent tunnelling at low frame rates on mobile.
             bool sprinting = Input.GetKey(KeyCode.LeftShift);
+            var start=Position;
             Vector2 movement = Vector2.ClampMagnitude(axis, 1) * (sprinting ? 4.5f : 3.2f) * Mathf.Min(delta, .1f);
             int steps = Mathf.Max(1, Mathf.CeilToInt(movement.magnitude / .08f));
             for (int i = 0; i < steps; i++) {
@@ -79,8 +101,22 @@ namespace Backfranz.Playable
                 var vertical=p+new Vector2(0,movement.y/steps);
                 if(world.CanPlayerStep(p,vertical))p=vertical;
                 transform.position = p;
+                if(p!=from)session.ObserveFirstNightMovement(p);
+                if(session.ObserveClassroomLoop(from,p)){Pose(false);return;}
                 session.ObserveAcousticMovement(p);
-                if(session.ObserveGalleryMovement(from,p,sprinting))return;
+                if(session.ObserveGalleryMovement(from,p,sprinting)){Pose(false);return;}
+            }
+            Vector2 travelled=Position-start;
+            if(travelled.sqrMagnitude>.000001f){
+                reachStarted=-1;
+                // Keep the facing stable when two cardinal inputs are held together.
+                if(Mathf.Abs(Mathf.Abs(travelled.x)-Mathf.Abs(travelled.y))>.004f||Mathf.Abs(axis.x)<.01f||Mathf.Abs(axis.y)<.01f)
+                    Facing=travelled.normalized;
+                strideDistance+=travelled.magnitude;
+                Pose(true);
+            }else{
+                if(!Reaching&&axis.sqrMagnitude>.01f)Facing=axis.normalized;
+                Pose(false);
             }
         }
         void OnApplicationFocus(bool focused) { if (!focused) TouchAxis(Vector2.zero); }

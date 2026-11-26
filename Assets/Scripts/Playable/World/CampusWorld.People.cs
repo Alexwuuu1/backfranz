@@ -66,24 +66,27 @@ namespace Backfranz.Playable
             PlaceCrowdMember(Ground,7,9,16,13,16);
             PlaceCrowdMember(Ground,8,31,17,34,17);
             PlaceCrowdMember(Ground,9,48,17,51,17);
+            PlaceCrowdMember(Ground,10,49,20,seated:true);
+            PlaceCrowdMember(Ground,11,52,19);
+            PlaceCrowdMember(Ground,12,6,15,10,15);
         }
 
         void PopulateUpper(int room,int floor)
         {
             if(IsDark(room))return;
             if(floor==1)
-                PlacePerson(room,"Personal administrativo","pb-recepcionista","Este es el piso de servicios. Caja atiende pagos y Posgrado queda pasando el pasillo.",false,
-                    new Vector2Int(19,14));
+                PlacePerson(room,"Personal administrativo","pb-recepcionista","Caja y Posgrado están por el pasillo de arriba. Para llegar a Dirección, baja por el cruce de este lado.",false,
+                    new Vector2Int(25,15));
             string teacher=floor switch
             {
                 2=>"Profesora",3=>"Docente de Computación",4=>"Docente de Derecho",5=>"Docente del Taller",_=>null
             };
             if(teacher!=null){
                 var (line,position)=floor switch{
-                    2=>("Las prácticas de cocina y salud comparten piso. Busca la puerta de cada sala desde el pasillo.",new Vector2Int(8,8)),
-                    3=>("Los laboratorios dan al corredor principal. Para grabar, baja hacia los estudios.",new Vector2Int(20,7)),
-                    4=>("La práctica de Derecho es a la izquierda. El aula 4A queda al otro lado del pasillo.",new Vector2Int(16,8)),
-                    _=>("Para trabajar en grupo, ve al aula del lado izquierdo. El taller queda en el sector de piso metálico.",new Vector2Int(19,7))
+                    2=>("Simulación e Histología quedan en el corredor de luz fría. Para las prácticas de cocina, cruza hacia el lado de las bandejas.",new Vector2Int(12,14)),
+                    3=>("Los laboratorios dan al corredor de arriba. Cruza por el medio para bajar a Streaming, Fotografía o Sonido.",new Vector2Int(16,11)),
+                    4=>("Derecho queda al final del corredor de ventanas. Gesell está junto al ascensor y 4A se alcanza por el cruce del centro.",new Vector2Int(16,9)),
+                    _=>("El Aula de grupos queda en el extremo oeste. Para Taller, baja por el corredor metálico del este.",new Vector2Int(22,14))
                 };
                 PlacePerson(room,teacher,"pb-recepcionista",line,false,position);
             }
@@ -92,20 +95,20 @@ namespace Backfranz.Playable
                 foreach(int interior in UpperInteriorsOn(room))
                     if(UpperInteriorName(interior)=="Sala Jurídica"){classRoom=interior;break;}
                 classTraveler=PlacePerson(room,"Estudiante de Derecho","pb-estudiante","En un rato entro a la sala jurídica. Hoy me toca práctica.",false,
-                    new Vector2Int(8,12),new Vector2Int(6,12));
+                    new Vector2Int(8,17),new Vector2Int(7,18));
                 classHallRoute=classTraveler.Route;
                 nextClassChange=Time.time+5f;
             }
             if(floor==6)
-                PlacePerson(room,"Bibliotecaria","pb-recepcionista","Puedes consultar el material en la sala de lectura. Te pedimos hablar en voz baja.",false,
-                    new Vector2Int(18,15));
+                PlacePerson(room,"Bibliotecaria","pb-recepcionista","Para entregar tu ficha, baja por el centro y entra en la Sala de lectura. El archivo queda a la derecha.",false,
+                    new Vector2Int(16,18));
             var routes=floor switch{
-                1=>new[]{(4,8,9,8),(28,9,28,13),(19,13,23,13),(12,7,16,7),(18,9,23,9),(6,13,9,13)},
-                2=>new[]{(10,8,14,8),(18,13,22,13),(26,7,26,9),(3,7,6,7),(18,8,22,8),(10,3,14,3)},
-                3=>new[]{(5,7,9,7),(17,8,22,8),(26,6,29,6),(4,13,7,13),(9,15,13,15),(18,2,22,2)},
-                4=>new[]{(6,8,12,8),(21,9,23,9),(13,6,17,6),(3,13,7,13),(22,13,25,13),(25,6,28,6)},
-                5=>new[]{(8,8,13,8),(23,8,27,8),(12,13,15,13),(3,12,7,12),(23,12,27,12),(12,5,16,5)},
-                _=>new[]{(12,7,16,7),(19,8,23,8),(12,13,17,13),(4,6,7,6),(24,6,27,6),(4,13,7,13)}
+                1=>new[]{(4,10,4,14),(27,12,27,15),(19,16,23,16),(11,12,11,12),(18,8,22,8),(6,13,9,13)},
+                2=>new[]{(9,9,13,9),(18,14,22,14),(26,8,26,11),(5,7,9,7),(18,8,22,8),(16,13,16,16)},
+                3=>new[]{(5,7,9,7),(18,9,22,9),(28,8,28,11),(12,8,16,8),(9,15,13,15),(18,14,22,14)},
+                4=>new[]{(6,8,11,8),(24,9,26,9),(14,13,17,13),(25,16,28,16),(23,14,26,14),(25,7,28,7)},
+                5=>new[]{(8,8,13,8),(23,9,27,9),(12,13,15,13),(3,13,7,13),(24,12,27,12),(12,5,16,5)},
+                _=>new[]{(10,13,13,13),(26,14,29,14),(22,5,22,8),(11,7,13,7),(6,8,6,11),(23,16,23,16)}
             };
             var (studentName,greeting)=floor switch{
                 1=>("Jimena","Estoy esperando que llamen mi turno. Si vas a Caja, saca tu ficha en el dispensador."),
@@ -117,7 +120,8 @@ namespace Backfranz.Playable
             };
             for(int i=0;i<routes.Length;i++){
                 var (fromX,fromY,toX,toY)=routes[i];
-                PlaceCrowdMember(room,i,fromX,fromY,toX,toY,name:i==3?studentName:"Estudiante",greeting:i==3?greeting:null);
+                PlaceCrowdMember(room,i,fromX,fromY,toX,toY,seated:floor==1&&i==3,
+                    name:i==3?studentName:"Estudiante",greeting:i==3?greeting:null);
             }
         }
 
@@ -141,7 +145,9 @@ namespace Backfranz.Playable
                     PlaceCrowdMember(room,4,4,10,10,10);PlaceCrowdMember(room,5,12,6,15,6);
                     break;
                 case 3:
-                    PlaceCrowdMember(room,0,12,12,14,12);PlaceCrowdMember(room,1,3,5,3,9);
+                    PlacePerson(room,"Mauro","pb-estudiante","Estamos probando el sonido antes de la charla. La puerta junto al escenario da al paso de servicio.",false,
+                        new Vector2Int(12,12),new Vector2Int(14,12));
+                    PlaceCrowdMember(room,1,3,5,3,9);
                     for(int i=0;i<8;i++)
                         PlaceCrowdMember(room,i+2,i%4<2?5+2*(i%4):13+2*(i%4-2),6+2*(i/4),seated:true,facesAway:true);
                     break;
@@ -170,8 +176,41 @@ namespace Backfranz.Playable
         void PopulateUpperInterior(int room,UpperRoom layout,int center)
         {
             if(layout.Surface=="bano")return;
+            if(layout.Floor==1)
+            {
+                PopulateServicesInterior(room,layout.Name);
+                return;
+            }
+            if(layout.Floor==2)
+            {
+                PopulateHealthInterior(room,layout.Name);
+                return;
+            }
+            if(layout.Floor==3)
+            {
+                PopulateComputingInterior(room,layout.Name);
+                return;
+            }
+            if(layout.Floor==4)
+            {
+                PopulateClassroomsInterior(room,layout.Name);
+                return;
+            }
+            if(layout.Floor==5)
+            {
+                PopulateWorkshopInterior(room,layout.Name);
+                return;
+            }
+            if(layout.Floor==6)
+            {
+                PlaceCrowdMember(room,0,5,7,seated:true,facesAway:true);
+                PlaceCrowdMember(room,1,7,10,seated:true,facesAway:true);
+                PlaceCrowdMember(room,2,16,9,16,12);
+                PlaceCrowdMember(room,3,5,6,seated:true);
+                return;
+            }
             int index=0;
-            if(layout.Name=="Aula 4A"||layout.Name=="Aula de grupos"||layout.Name=="Sala de lectura"){
+            if(layout.Name=="Aula 4A"||layout.Name=="Aula de grupos"){
                 int spread=layout.Name=="Aula 4A"?4:5;
                 int backRow=layout.Name=="Aula 4A"?10:11;
                 foreach(int row in new[]{8,backRow})
@@ -190,6 +229,124 @@ namespace Backfranz.Playable
                     if(index==8)return;
                 }
             }
+        }
+
+        void PopulateServicesInterior(int room,string name)
+        {
+            switch(name)
+            {
+                case "Posgrado":
+                    PlaceCrowdMember(room,0,5,9,seated:true);
+                    PlaceCrowdMember(room,1,4,10,seated:true);
+                    PlaceCrowdMember(room,2,7,10,7,8);
+                    PlaceCrowdMember(room,3,13,10,13,11);
+                    break;
+                case "Caja":
+                    for(int i=0;i<3;i++)
+                        PlaceCrowdMember(room,i,5+4*i,12,seated:true);
+                    PlaceCrowdMember(room,3,5,9);
+                    PlaceCrowdMember(room,4,13,9);
+                    PlaceCrowdMember(room,5,4,7,seated:true);
+                    PlaceCrowdMember(room,6,12,6,13,7);
+                    break;
+                case "Dirección de Carrera":
+                    PlaceCrowdMember(room,0,4,7,seated:true);
+                    PlaceCrowdMember(room,1,11,8,seated:true,facesAway:true);
+                    PlaceCrowdMember(room,2,12,13,seated:true);
+                    PlaceCrowdMember(room,3,6,8,6,11);
+                    break;
+            }
+        }
+
+        void PopulateHealthInterior(int room,string name)
+        {
+            switch(name)
+            {
+                case "Cocina de prácticas":
+                    PlaceCrowdMember(room,0,5,10,8,10);
+                    PlaceCrowdMember(room,1,7,7,7,8);
+                    PlaceCrowdMember(room,2,16,7,16,9);
+                    PlaceCrowdMember(room,3,16,13,18,13);
+                    break;
+                case "Sala de Simulación":
+                    PlaceCrowdMember(room,0,4,7,seated:true);
+                    PlaceCrowdMember(room,1,6,8,6,7);
+                    PlaceCrowdMember(room,2,12,10,13,10);
+                    break;
+                case "Histología y Fisiología":
+                    PlaceCrowdMember(room,0,5,7,5,6);
+                    PlaceCrowdMember(room,1,14,7,14,9);
+                    PlaceCrowdMember(room,2,5,12,7,12);
+                    PlaceCrowdMember(room,3,14,12,13,12);
+                    break;
+            }
+        }
+
+        void PopulateComputingInterior(int room,string name)
+        {
+            switch(name)
+            {
+                case "Laboratorio PC":
+                    foreach(int y in new[]{7,10})
+                        foreach(int x in new[]{5,7,13,15})
+                            PlaceCrowdMember(room,x+y,x,y,seated:true,facesAway:true);
+                    break;
+                case "Sala Mac":
+                    PlaceCrowdMember(room,0,7,9,seated:true,facesAway:true);
+                    PlaceCrowdMember(room,1,11,9,seated:true,facesAway:true);
+                    PlaceCrowdMember(room,2,4,8,4,9);
+                    break;
+                case "Streaming":
+                    PlaceCrowdMember(room,0,10,11,seated:true);
+                    PlaceCrowdMember(room,1,11,9,11,10);
+                    break;
+                case "Fotografía":
+                    PlaceCrowdMember(room,0,5,9,7,9);
+                    PlaceCrowdMember(room,1,11,10,11,11);
+                    break;
+                case "Sonido":
+                    PlaceCrowdMember(room,0,11,8,seated:true,facesAway:true);
+                    PlaceCrowdMember(room,1,9,10,10,10);
+                    break;
+            }
+        }
+
+        void PopulateClassroomsInterior(int room,string name)
+        {
+            switch(name)
+            {
+                case "Sala Jurídica":
+                    PlaceCrowdMember(room,0,5,8,seated:true,facesAway:true);
+                    PlaceCrowdMember(room,1,13,8,seated:true,facesAway:true);
+                    PlaceCrowdMember(room,2,14,12,16,12);
+                    break;
+                case "Cámara Gesell":
+                    PlaceCrowdMember(room,0,10,8,seated:true,facesAway:true);
+                    PlaceCrowdMember(room,1,12,8,seated:true,facesAway:true);
+                    PlaceCrowdMember(room,2,4,8,4,9);
+                    break;
+                case "Aula 4A":
+                    foreach(int y in new[]{8,10})
+                        foreach(int x in new[]{6,14})
+                            PlaceCrowdMember(room,x+y,x,y,seated:true,facesAway:true);
+                    PlaceCrowdMember(room,2,9,12,12,12);
+                    break;
+            }
+        }
+
+        void PopulateWorkshopInterior(int room,string name)
+        {
+            if(name=="Aula de grupos")
+            {
+                PlaceCrowdMember(room,0,5,8,seated:true);
+                PlaceCrowdMember(room,1,14,8,seated:true,facesAway:true);
+                PlaceCrowdMember(room,2,16,11,seated:true,facesAway:true);
+                PlaceCrowdMember(room,3,10,11,10,12);
+                return;
+            }
+            PlaceCrowdMember(room,0,6,10,7,10);
+            PlaceCrowdMember(room,1,12,11,12,12);
+            PlaceCrowdMember(room,2,7,6,5,6);
         }
 
         bool PlaceCrowdMember(int room,int index,int x,int y,int toX=-1,int toY=-1,bool seated=false,

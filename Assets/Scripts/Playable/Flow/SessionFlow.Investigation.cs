@@ -41,7 +41,6 @@ namespace Backfranz.Playable
 
         void ShowInvestigationContacts()
         {
-            if(Room==DarkTop)World.MarkEscapeContact(Room,InvestigationDesk(),"Mesa de investigación","bloque-a-panel-horario");
             int evidence=EvidenceInRoom();
             if(evidence>=0)
                 World.MarkEscapeContact(Room,EvidencePoint(),Evidence[evidence].Speaker,"pb-estudiante");
@@ -69,8 +68,8 @@ namespace Backfranz.Playable
         {
             for(int index=0;index<Evidence.Length;index++)
                 if(!HasEscapeFlag(caseEvidence,index))
-                    return Floors[Evidence[index].Floor]+" · "+Evidence[index].Room;
-            return "6 · Contrasta testimonios en la mesa";
+                    return ThoughtOnFloor(Evidence[index].Floor,"Me falta un testimonio. Debería buscarlo en "+Evidence[index].Room);
+            return ThoughtOnFloor(6,"Tengo que cotejar los testimonios en la mesa del cruce central de la biblioteca");
         }
 
         void OpenInvestigation()

@@ -16,6 +16,13 @@ namespace Backfranz.Playable
             public int version = 1;
             public int room, floor, visited, lanes, circuit;
             public int inductionBriefs;
+            public AuditoriumTool auditoriumTools;
+            public bool auditoriumWedged;
+            public bool hasCampusRadio;
+            public bool hasClassroomChalk, classroomLoopSeen, classroomChalkMarked;
+            public bool hasWorkshopCable;
+            public int workshopLamp;
+            public bool servicesPassFound, servicesPassReturned;
             public int escapeSolved, escapeClues;
             public int escapeParts;
             public int caseEvidence, solvedCases;
@@ -40,12 +47,18 @@ namespace Backfranz.Playable
             public int stairOrigin, stairDestination;
             public Vector2 position;
             public bool horror, registered, fuse, power, key, badge;
+            public bool heardUnattendedReader, heardServiceKnock;
 
             public bool Valid()
             {
                 if (version != 1 || room < Entrance || room >= TotalRooms || (visited & ~127) != 0 ||
                     (lanes & ~63) != 0 || circuit < 0 || circuit > Sequence.Length ||
                     (inductionBriefs & ~InductionBriefMask) != 0 ||
+                    (auditoriumTools & ~AllAuditoriumTools) != 0 ||
+                    (auditoriumWedged&&(!horror||(auditoriumTools&AuditoriumTool.Wedge)==0)) ||
+                    (servicesPassFound&&!horror||servicesPassReturned&&!servicesPassFound) ||
+                    (classroomLoopSeen&&!horror||classroomChalkMarked&&(!hasClassroomChalk||!horror)) ||
+                    workshopLamp<0||workshopLamp>2||(workshopLamp>0&&(!hasWorkshopCable||!horror)) ||
                     ((escapeSolved|escapeClues)&~EscapeTaskMask)!=0 ||
                     (escapeParts&~RelayPartsMask)!=0 ||
                     (caseEvidence&~AllEvidence)!=0 || (solvedCases&~AllCases)!=0 ||
@@ -100,7 +113,7 @@ namespace Backfranz.Playable
         public bool SaveGame()
         {
             if (!Player || Finished || Crossing || DialogueOpen || LiftOpen || StairsOpen || EscapePanelOpen ||
-                JournalOpen || IsLiftCabin(Room) || !World.CanStand(Player.Position))
+                JournalOpen || BackpackOpen || IsLiftCabin(Room) || !World.CanStand(Player.Position))
                 return false;
 
             var save = new SaveData
@@ -111,6 +124,16 @@ namespace Backfranz.Playable
                 horror = Horror == HorrorState.Active,
                 registered = HasCard,
                 inductionBriefs = inductionBriefs,
+                auditoriumTools = auditoriumTools,
+                auditoriumWedged = auditoriumWedged,
+                hasCampusRadio = hasCampusRadio,
+                hasClassroomChalk = hasClassroomChalk,
+                classroomLoopSeen = classroomLoopSeen,
+                classroomChalkMarked = classroomChalkMarked,
+                hasWorkshopCable = hasWorkshopCable,
+                workshopLamp = workshopLamp,
+                servicesPassFound = servicesPassFound,
+                servicesPassReturned = servicesPassReturned,
                 stairOrigin = stairOrigin,
                 stairDestination = stairDestination,
                 fuse = HasFuse,
@@ -145,6 +168,8 @@ namespace Backfranz.Playable
                 crewContacts = crewContacts,
                 crewAssigned = crewAssigned,
                 finaleStage = finaleStage,
+                heardUnattendedReader = heardUnattendedReader,
+                heardServiceKnock = heardServiceKnock,
                 playingSeconds = playingSeconds,
                 escapeSeconds = escapeSeconds
             };
@@ -166,6 +191,16 @@ namespace Backfranz.Playable
             Horror = save.horror ? HorrorState.Active : HorrorState.Normal;
             HasCard = HasSchedule = save.registered;
             inductionBriefs = save.inductionBriefs;
+            auditoriumTools = save.auditoriumTools;
+            auditoriumWedged = save.auditoriumWedged;
+            hasCampusRadio = save.hasCampusRadio;
+            hasClassroomChalk = save.hasClassroomChalk;
+            classroomLoopSeen = save.classroomLoopSeen;
+            classroomChalkMarked = save.classroomChalkMarked;
+            hasWorkshopCable = save.hasWorkshopCable;
+            workshopLamp = save.workshopLamp;
+            servicesPassFound = save.servicesPassFound;
+            servicesPassReturned = save.servicesPassReturned;
             HasFuse = save.fuse;
             HasKey = save.key;
             HasBadge = save.badge;
@@ -181,6 +216,13 @@ namespace Backfranz.Playable
             rescuedPeople = save.rescuedPeople;
             escortSeen = save.escortSeen;
             escortedPeople = save.escortedPeople;
+            if(HasEscapeFlag(rescuedPeople,NuriaAid))
+            {
+                // In older saves Nuria reached the exit after a supply delivery.
+                escortSeen|=1<<NuriaEscort;
+                escortedPeople|=1<<NuriaEscort;
+                rescuedPeople&=~(1<<NuriaAid);
+            }
             escorting = save.escorting;
             escortInHall = save.escortInHall;
             escortLocalFeet = save.escortLocalFeet;
@@ -198,6 +240,8 @@ namespace Backfranz.Playable
             crewContacts = save.crewContacts;
             crewAssigned = save.crewAssigned;
             finaleStage = save.finaleStage;
+            heardUnattendedReader = save.heardUnattendedReader;
+            heardServiceKnock = save.heardServiceKnock;
             playingSeconds = save.playingSeconds;
             escapeSeconds = save.escapeSeconds;
             for (int floor = 0; floor < visits.Length; floor++)

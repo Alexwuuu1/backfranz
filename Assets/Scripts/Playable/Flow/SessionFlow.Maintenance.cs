@@ -17,14 +17,30 @@ namespace Backfranz.Playable
         int maintenanceReadings;
         bool maintenanceApproved, openMaintenance;
         Button basementButton;
+        readonly SpriteRenderer[] pressureViews=new SpriteRenderer[PressureReadings.Length];
+        SpriteRenderer regulatorView;
         Vector2 CalibrationPoint()=>World.Cell(Basement,24,10);
 
         void ShowMaintenanceContacts()
         {
             if(Room!=Basement)return;
-            foreach(var reading in PressureReadings)
-                World.MarkEscapeContact(Room,World.Cell(Room,reading.X,reading.Y),reading.Label,"bloque-a-panel-horario");
-            World.MarkEscapeContact(Room,CalibrationPoint(),"Regulador de emergencia","bloque-a-item-tablero-activo");
+            for(int i=0;i<PressureReadings.Length;i++)
+            {
+                var reading=PressureReadings[i];
+                pressureViews[i]=World.PlaceServiceEquipment(Room,World.Cell(Room,reading.X,reading.Y),reading.Label,
+                    "utileria-medidor-industrial",new Vector2(1.3f,1.45f));
+            }
+            regulatorView=World.PlaceServiceEquipment(Room,CalibrationPoint(),"Regulador de emergencia",
+                "bloque-a-item-tablero-activo",new Vector2(1.77f,1.76f));
+            RefreshMaintenanceReadings();
+        }
+
+        void RefreshMaintenanceReadings()
+        {
+            var checkedColor=new Color(.61f,1f,.79f);
+            for(int i=0;i<pressureViews.Length;i++)
+                pressureViews[i].color=HasEscapeFlag(maintenanceReadings,i)?checkedColor:new Color(.94f,.79f,.66f);
+            regulatorView.color=maintenanceApproved?checkedColor:World.Power?Color.white:new Color(.53f,.54f,.60f);
         }
 
         bool TryMaintenanceInteraction(bool interact,out string prompt)
@@ -39,6 +55,7 @@ namespace Backfranz.Playable
                 if(interact)
                 {
                     maintenanceReadings|=1<<i;
+                    RefreshMaintenanceReadings();
                     Confirm(reading.Reading,4);
                 }
                 return true;
@@ -76,6 +93,7 @@ namespace Backfranz.Playable
         {
             if(option!=0){Sound.Scanner();escapeTitle.text="Regulador · ajuste rechazado";return;}
             maintenanceApproved=true;
+            RefreshMaintenanceReadings();
             CloseEscapePanel();
             Confirm("Presión estabilizada · el portón ya puede recibir la orden",5);
         }

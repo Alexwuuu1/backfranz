@@ -108,11 +108,12 @@ namespace Backfranz.Playable
         {
             for(int i = 0; i < BlackoutTapes.Length; i++)
                 if(!HasEscapeFlag(blackoutTapes,i))
-                    return Floors[BlackoutTapes[i].Floor] + " · clip en " + BlackoutTapes[i].Room;
+                    return ThoughtOnFloor(BlackoutTapes[i].Floor,"Me falta una grabación del apagón. Debería buscarla en "+BlackoutTapes[i].Room);
             for(int i = 0; i < BlackoutWitnesses.Length; i++)
                 if(!HasEscapeFlag(blackoutWitnesses,i))
-                    return "Busca a " + BlackoutWitnesses[i].Name + " · " + BlackoutWitnesses[i].Room;
-            return "PB · reconstruye el apagón en el archivo de cámaras";
+                    return ThoughtOnFloor(BlackoutWitnesses[i].Floor,
+                        "Puedo preguntarle a "+BlackoutWitnesses[i].Name+" qué pasó en "+BlackoutWitnesses[i].Room);
+            return ThoughtOnFloor(0,"Tengo que reconstruir el apagón en el archivo de cámaras");
         }
 
         void BuildBlackoutControls(Transform parent)

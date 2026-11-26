@@ -42,7 +42,7 @@ namespace Backfranz.Playable
             ("Paula","pb-recepcionista","En el aula de grupos ensayaba el protocolo de primeros auxilios. En el apagón encontró una utilidad inesperada para la lista de asistencia."),
             ("Dalia","pb-recepcionista","Solía esperar a sus compañeros en el café. Se queda allí al cortarse la luz y reconoce a los que vuelven por el ruido de la puerta."),
             ("Lázaro","pb-estudiante","Estudiante de Fotografía. Aprendió que el visor a veces muestra un pasillo anterior al que tiene delante. Busca una linterna para poder salir sin mirar por él."),
-            ("Nuria","pb-recepcionista","Ensayaba en el auditorio cuando fallaron las luces. Se lastimó el pie en las gradas y desde el escenario ha estado indicando la salida a otros."),
+            ("Nuria","pb-recepcionista","Ensayaba en el auditorio cuando fallaron las luces. Se lastimó el pie en las gradas y se refugió en Simulación, junto a una de las camillas."),
             ("Lina","pb-estudiante","En Streaming guardaba muestras antes de borrar los directos. Una de esas grabaciones conservó el patrón azul del estudio."),
             ("Diego","pb-estudiante","En Fotografía medía las exposiciones con un cronómetro. Esa costumbre le permitió reconocer cómo se duplicaban las ráfagas de la pista ámbar."),
             ("Hugo","pb-estudiante","Se refugió en Sala Mac y anotó los ritmos que se filtraban por los auriculares. La pista violeta es la última que pudo transcribir."),
