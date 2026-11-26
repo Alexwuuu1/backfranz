@@ -571,7 +571,7 @@ namespace Backfranz.Playable
                 new Vector2(.36f,0f),new Vector2(.56f,1f),ToggleMission,20);
             missionButton.name="Consultar misión";
             var mission=Panel(hud,"Misión actual",
-                new Vector2(mobile?.23f:.02f,.167f),new Vector2(mobile?.82f:.465f,.294f));
+                new Vector2(mobile?.29f:.02f,.167f),new Vector2(mobile?.82f:.465f,.294f));
             mission.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;
             missionVisibility=mission.gameObject.AddComponent<CanvasGroup>();
             missionVisibility.interactable=false;
@@ -584,7 +584,7 @@ namespace Backfranz.Playable
             objective=Label(mission,"Qué hacer",new Vector2(.055f,.09f),new Vector2(.945f,.65f),23);
             objective.alignment=TextAnchor.MiddleLeft;
             CreateGalleryWatch(safe);
-            hintPanel=Rect(safe,"Interacción",new Vector2(.23f,.093f),new Vector2(.82f,.160f)).gameObject;
+            hintPanel=Rect(safe,"Interacción",new Vector2(mobile?.29f:.23f,.093f),new Vector2(.82f,.160f)).gameObject;
             hint=Label(hintPanel.transform,"Acción",Vector2.zero,Vector2.one,23);
             var contrast=hint.gameObject.AddComponent<UnityEngine.UI.Outline>();
             contrast.effectColor=new Color(.025f,.041f,.06f,.94f);

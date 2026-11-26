@@ -287,15 +287,15 @@ namespace Backfranz.Playable
             escapeBody=Label(panel,"Pista y operación",new Vector2(.07f,.54f),new Vector2(.93f,.82f),mobile?32:25);
             for(int i=0;i<escapeOptions.Length;i++){
                 int index=i;
-                float y=mobile?.419f-i*.132f:.44f-i*.115f;
+                float y=mobile?.403f-i*.135f:.44f-i*.115f;
                 escapeOptions[i]=Button(panel,"Opción "+(i+1),
                     new Vector2(mobile?.08f:.15f,y),
-                    new Vector2(mobile?.92f:.85f,y+(mobile?.106f:.085f)),
+                    new Vector2(mobile?.92f:.85f,y+(mobile?.124f:.085f)),
                     ()=>ChooseEscapeOption(index),mobile?34:24);
             }
             Button(panel,"Cerrar",
-                mobile?new Vector2(.28f,.03f):new Vector2(.35f,.055f),
-                mobile?new Vector2(.72f,.133f):new Vector2(.65f,.143f),CloseEscapePanel,mobile?32:24);
+                mobile?new Vector2(.28f,.02f):new Vector2(.35f,.055f),
+                mobile?new Vector2(.72f,.118f):new Vector2(.65f,.143f),CloseEscapePanel,mobile?32:24);
             var keypad=Rect(panel,"Teclado Gesell",Vector2.zero,Vector2.one);
             escapeKeypad=keypad.gameObject;
             keypadDisplay=Label(keypad,"Hora ingresada",new Vector2(.19f,.43f),new Vector2(.81f,.53f),28);
