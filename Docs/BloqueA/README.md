@@ -2,6 +2,8 @@
 
 La revisión de [planta baja](Planta-Baja.md) incorpora la ventanilla de Recepción, el control de seguridad, seis salas y los baños accesibles desde el pasillo en L. Las capturas versionadas en `Capturas-PB/` corresponden al prototipo anterior.
 
+La [propuesta de rediseño](Rediseno/README.md) contiene los planos de día y de noche de planta baja y las rutas del rescate del Auditorio.
+
 Ver [la adaptación del tour 360](Adaptacion-Tour.md) para conocer las referencias, la distribución y los sprites de esta revisión.
 
 La partida empieza con Yamil en la subida de Landaeta el día de la inducción. Avanza el diálogo con E, Enter, Espacio o el botón del cuadro de texto. Puedes hablar con un estudiante en la calle. En la ventanilla de Recepción obtienes la credencial, el horario y el acceso a los molinetes. En cada piso superior hay un guía que te encarga una actividad y señala dónde completarla. El directorio del ascensor muestra las constancias pendientes. Las plantas son adaptaciones jugables. [Levantamiento de la sede](../Campus/Levantamiento-La-Paz.md)
