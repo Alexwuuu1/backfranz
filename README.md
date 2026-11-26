@@ -1,6 +1,10 @@
 # Backfranz
 
-Videojuego 2D de exploración y terror universitario desarrollado por el **Grupo 64** en Unity. Yamil llega a su primer día de inducción en Unifranz La Paz. Después de conocer el Bloque A, un descenso en ascensor lo conduce a una versión alterada del campus, donde deberá investigar, ayudar a otros estudiantes y resolver los mecanismos de evacuación.
+[![Yamil frente al Bloque A durante el apagón](site/media/campus-apagon.webp)](https://alexwuuu1.github.io/backfranz/)
+
+**[Landing y galería](https://alexwuuu1.github.io/backfranz/)** · **[Guía de código y defensa](Docs/Backfranz-Guia-de-codigo-y-defensa.pdf)** · **[Atlas del Bloque A](Docs/BloqueA/Rediseno/README.md)**
+
+Backfranz es un juego 2D de exploración y terror universitario del **Grupo 64**. Yamil llega a su primer día de inducción en Unifranz La Paz. Un descenso en ascensor lo lleva a una versión alterada del Bloque A, donde deberá investigar, ayudar a otros estudiantes y resolver los mecanismos de evacuación.
 
 **Motor** · Unity 6000.3.16f1, Unity 6.3 LTS.
 
@@ -13,6 +17,8 @@ Videojuego 2D de exploración y terror universitario desarrollado por el **Grupo
 - Exterior, recepción y control de acceso, siete plantas del campus, interiores independientes, dos escaleras y ascensor.
 - Actividades de inducción y transición a Backfranz, con investigación, pistas, puzzles, rescates y tres finales.
 - Diario, guardado local, continuación de partida, pausa, opciones, galería y créditos.
+- Mochila con descripciones, objetos útiles para el apagón y pensamientos de Yamil consultables durante el recorrido.
+- Distribuciones propias para el exterior, planta baja, los seis pisos, Mantenimiento y la Galería de servicio.
 - Pixel art con fuentes editables ASE, exportaciones PNG, tipografía Backfranz Pixel y audio ambiental.
 
 La distribución de los ambientes es una adaptación para el videojuego. El recorrido, los mecanismos y el alcance actual se describen en la documentación del Bloque A. [Recorrido y alcance](Docs/BloqueA/README.md) · [Campaña de escape](Docs/BloqueA/Escape.md)
@@ -44,6 +50,8 @@ La distribución de los ambientes es una adaptación para el videojuego. El reco
 | Correr | Shift izquierdo | — |
 | Interactuar | E o Espacio | Botón de la mano |
 | Avanzar un diálogo | E, Espacio o Enter | Botón del diálogo |
+| Consultar misión | M o botón Misión | Botón Misión |
+| Abrir la mochila | I o botón Mochila | Botón Mochila |
 | Pausar y acceder al guardado | Escape | Botón de pausa |
 
 ## Windows y Android
@@ -62,11 +70,9 @@ Para Android, instalar **Android Build Support**, **Android SDK & NDK Tools** y 
 
 El estado y los datos que deben acompañar la entrega se registran en el documento de evaluación. [Entrega de la evaluación procesual](Docs/Evaluacion-Procesual.md)
 
-## Verificaciones de la integración
+## Verificaciones
 
-En Unity 6000.3.16f1 se completaron **1.310 comprobaciones** del recorrido, incluidas introducción/tutorial, controles multitáctiles, inducción, escape, guardado y finales. La auditoría revisó **69 mapas y 54.290 puntos transitables**. El verificador gráfico comprobó **935 fuentes ASE y 1.463 fotogramas PNG**.
-
-Estas pruebas se ejecutaron sobre el proyecto en Unity. Las pruebas de los ejecutables de Windows y Android se registrarán después de la exportación. El capturador se ajustó para conservar los Canvas de las placas en espacio de mundo; sus imágenes deben regenerarse. [Registro de la integración](Docs/BloqueA/VERIFICACION-INTEGRACION.txt)
+La revisión del 26 de noviembre de 2026 completó **1.699 comprobaciones** del recorrido en Unity 6000.3.16f1 e incluyó inducción, transición al apagón, objetos, rescates, guardado y los tres finales. El verificador gráfico cotejó **951 fuentes ASE y 1.519 fotogramas PNG**. Las pruebas de ejecutables corresponden a la fase de exportación. [Registro histórico de integración](Docs/BloqueA/VERIFICACION-INTEGRACION.txt)
 
 ## Organización del repositorio
 
@@ -80,8 +86,13 @@ Estas pruebas se ejecutaron sobre el proyecto en Unity. Las pruebas de los ejecu
 | `SourceAssets` | Fuentes ASE, generadores, manifiestos y atribuciones |
 | `Docs/BloqueA` | Recorrido, campaña y verificaciones actuales |
 | `Docs/Hito3` y `Docs/Hito4` | Documentación y evidencias de entregas anteriores |
+| `site` | Código de la landing, ilustraciones y capturas optimizadas para la web |
 
-Las ramas `feature/hito3-alejandro`, `feature/hito3-cristopher`, `feature/hito3-galilea` y `feature/hito3-alexjoel` contienen los aportes individuales. Se integran mediante merges en `develop` y después en `main`, conservando el historial y los autores. Las carpetas generadas por Unity y los ejecutables se excluyen mediante `.gitignore`.
+Las ramas `feature/hito3-alejandro`, `feature/hito3-cristopher`, `feature/hito3-galilea` y `feature/hito3-alexjoel` conservan los aportes individuales y su historial. `main` contiene la revisión jugable. Las carpetas generadas por Unity y los ejecutables se excluyen mediante `.gitignore`.
+
+### Vista previa y publicación de la landing
+
+Desde la raíz, ejecuta `python -m http.server 8871 --directory site` y abre [la vista previa local](http://localhost:8871/). GitHub Pages sirve la rama `gh-pages`. Después de confirmar los cambios de `site` en `main`, sincroniza la landing con `git subtree push --prefix=site origin gh-pages`.
 
 ## Créditos y procedencia
 

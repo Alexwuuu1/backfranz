@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es-BO">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a1115">
+  <meta name="description" content="Backfranz es un videojuego de exploración y terror 2D del Grupo 64, ambientado en una adaptación del Bloque A de Unifranz La Paz.">
+  <meta property="og:title" content="Backfranz · Tu primer día empieza aquí">
+  <meta property="og:description" content="Empieza la inducción en el Bloque A. Cuando se corta la luz, encuentra la salida.">
+  <meta property="og:image" content="https://alexwuuu1.github.io/backfranz/media/campus-apagon.webp">
+  <title>Backfranz · Tu primer día empieza aquí</title>
+  <link rel="icon" href="media/yamil.png" type="image/png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="site.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#contenido">Saltar al contenido</a>
+  <header class="site-header">
+    <div class="wrap header-row">
+      <a class="brand" href="#inicio"><img src="media/yamil.png" width="25" height="32" alt=""> Backfranz</a>
+      <nav aria-label="Navegación principal">
+        <a href="#campus">El campus</a>
+        <a href="#galeria">Galería</a>
+        <a href="#probar">Cómo probar</a>
+      </nav>
+      <a class="header-link" href="https://github.com/Alexwuuu1/backfranz">GitHub <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+
+  <main id="contenido">
+    <section class="hero" id="inicio" aria-labelledby="titulo">
+      <img class="hero-scene" src="media/campus-apagon.webp" alt="" fetchpriority="high">
+      <div class="wrap hero-content">
+        <p class="eyebrow"><span class="signal"></span> LA PAZ, BOLIVIA</p>
+        <h1 id="titulo"><img class="logotype" src="media/backfranz.webp" alt="Backfranz"></h1>
+        <p class="hero-line">Tu primer día empieza aquí.</p>
+        <p class="hero-copy">Acompaña a Yamil en su inducción por el Bloque A. Un descenso en ascensor cambia el campus entero. Busca pistas, ayuda a quienes se quedaron dentro y encuentra una salida.</p>
+        <div class="actions">
+          <a class="button primary" href="#campus">Explorar el campus <span aria-hidden="true">↓</span></a>
+          <a class="button secondary" href="#probar">Abrir en Unity <span aria-hidden="true">↘</span></a>
+        </div>
+        <p class="hero-meta">Exploración 2D <span></span> Terror universitario <span></span> Tres finales</p>
+      </div>
+    </section>
+
+    <section class="section wrap campus" id="campus" aria-labelledby="titulo-campus">
+      <div class="section-intro">
+        <div>
+          <p class="eyebrow">BLOQUE A</p>
+          <h2 id="titulo-campus">Cuando se apagan las luces</h2>
+        </div>
+        <p>De día, Yamil aprende a moverse por la universidad. Durante el apagón, las mismas puertas llevan a recorridos alterados. Compara las dos versiones en el arte del juego.</p>
+      </div>
+      <div class="comparison" id="comparacion">
+        <img class="comparison-night" src="media/campus-apagon.webp" alt="Yamil frente al Bloque A durante el apagón." width="1550" height="871" loading="lazy">
+        <img class="comparison-day" src="media/campus-dia.webp" alt="La misma entrada del Bloque A durante la inducción." width="1550" height="871" loading="lazy">
+        <span class="phase phase-day">Inducción</span>
+        <span class="phase phase-night">Apagón</span>
+        <div class="divider" aria-hidden="true"><span>‹ ›</span></div>
+        <input id="comparar" type="range" min="0" max="100" value="52" aria-label="Comparar el campus de día y durante el apagón" aria-valuetext="52 % de día">
+      </div>
+      <div class="comparison-caption">
+        <span>Arte original del proyecto</span>
+        <span>Desliza para comparar · Usa las flechas con el control enfocado</span>
+      </div>
+    </section>
+
+    <section class="section wrap" id="galeria" aria-labelledby="titulo-galeria">
+      <div class="section-intro gallery-intro">
+        <div>
+          <p class="eyebrow">CAPTURAS EN UNITY</p>
+          <h2 id="titulo-galeria">Dentro de Backfranz</h2>
+        </div>
+        <p>El recorrido empieza en Recepción. Más tarde, una puerta conocida o una luz de emergencia pueden marcar la diferencia.</p>
+      </div>
+      <div class="gallery">
+        <figure>
+          <a class="shot" href="media/recepcion.webp" data-title="Recepción" data-alt="Yamil habla con la recepcionista bajo los ventanales del Bloque A.">
+            <img src="media/recepcion.webp" width="1120" height="630" alt="Diálogo de inducción en Recepción.">
+            <span aria-hidden="true">↗</span>
+          </a>
+          <figcaption><strong>Recepción</strong><span>Tu ficha y la primera orientación.</span></figcaption>
+        </figure>
+        <figure>
+          <a class="shot" href="media/biblioteca-alterada.webp" data-title="Biblioteca alterada" data-alt="Yamil se cruza con una figura oscura entre los estantes.">
+            <img src="media/biblioteca-alterada.webp" width="1120" height="630" alt="Una figura entre los estantes de la biblioteca nocturna.">
+            <span aria-hidden="true">↗</span>
+          </a>
+          <figcaption><strong>Biblioteca alterada</strong><span>Estantes, atajos y una presencia.</span></figcaption>
+        </figure>
+        <figure>
+          <a class="shot" href="media/galeria.webp" data-title="Galería de servicio" data-alt="Yamil se refugia en una línea de luz verde entre máquinas y pasarelas.">
+            <img src="media/galeria.webp" width="1120" height="630" alt="Franjas verdes de refugio en la Galería de servicio.">
+            <span aria-hidden="true">↗</span>
+          </a>
+          <figcaption><strong>Galería de servicio</strong><span>Refugios de luz y una sombra que escucha.</span></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section try-section" id="probar" aria-labelledby="titulo-probar">
+      <div class="wrap try-grid">
+        <div>
+          <p class="eyebrow">PROYECTO JUGABLE</p>
+          <h2 id="titulo-probar">Abre el Bloque A en Unity</h2>
+          <p>Clona el repositorio, añade la carpeta a Unity Hub y ábrela con <strong>Unity 6000.3.16f1</strong>. Entra a <code>Assets/Scenes/MenuPrincipal.unity</code>, pulsa Play y elige <strong>Nueva partida</strong>.</p>
+          <pre><code>git clone https://github.com/Alexwuuu1/backfranz.git</code></pre>
+          <a class="button primary" href="https://github.com/Alexwuuu1/backfranz">Ver el repositorio <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="resources">
+          <a href="https://github.com/Alexwuuu1/backfranz/blob/main/Docs/Backfranz-Guia-de-codigo-y-defensa.pdf">
+            <strong>Guía de código y defensa</strong><span>Variables, scripts y preguntas sobre el proyecto. <b aria-hidden="true">↗</b></span>
+          </a>
+          <a href="https://github.com/Alexwuuu1/backfranz/blob/main/Docs/BloqueA/Rediseno/README.md">
+            <strong>Atlas del Bloque A</strong><span>Planos de día y del apagón por piso. <b aria-hidden="true">↗</b></span>
+          </a>
+          <a href="https://github.com/Alexwuuu1/backfranz/blob/main/CREDITOS.md">
+            <strong>Equipo y créditos</strong><span>Grupo 64 y procedencia de los recursos. <b aria-hidden="true">↗</b></span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap footer">
+    <a class="brand" href="#inicio"><img src="media/yamil.png" width="21" height="27" alt=""> Backfranz</a>
+    <p>Grupo 64 · Unifranz La Paz</p>
+    <a href="https://github.com/Alexwuuu1/backfranz">Código en GitHub <span aria-hidden="true">↗</span></a>
+  </footer>
+
+  <dialog id="visor" aria-labelledby="titulo-visor">
+    <div class="dialog-bar">
+      <h2 id="titulo-visor"></h2>
+      <form method="dialog"><button class="button secondary" type="submit">Cerrar</button></form>
+    </div>
+    <img id="captura-visor" alt="">
+  </dialog>
+</body>
+</html>
