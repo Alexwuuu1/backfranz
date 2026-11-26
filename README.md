@@ -56,12 +56,12 @@ La distribución de los ambientes es una adaptación para el videojuego. El reco
 
 ## Windows y Android
 
-La [publicación Backfranz 1.0.0](https://github.com/Alexwuuu1/backfranz/releases/tag/v1.0.0) reúne los instalables y las sumas SHA-256. También se puede elegir plataforma en la [página del juego](https://alexwuuu1.github.io/backfranz/#descargas).
+La [publicación Backfranz 1.0.1](https://github.com/Alexwuuu1/backfranz/releases/tag/v1.0.1) reúne las dos descargas y sus sumas SHA-256. La [página del juego](https://alexwuuu1.github.io/backfranz/#descargas) incluye instrucciones de inicio para cada plataforma.
 
 | Plataforma | Descarga e inicio |
 |---|---|
-| Windows x64 | [Descargar el ZIP](https://github.com/Alexwuuu1/backfranz/releases/download/v1.0.0/Backfranz-Windows-x64.zip), extraer la carpeta completa y abrir `Backfranz.exe`. |
-| Android | [Descargar el APK](https://github.com/Alexwuuu1/backfranz/releases/download/v1.0.0/Backfranz-Android.apk) e instalarlo en un dispositivo con Android 8.0 o posterior. Los controles táctiles y las opciones de las actividades se ampliaron para jugar en horizontal. |
+| Windows x64 | [Descargar el ZIP](https://github.com/Alexwuuu1/backfranz/releases/download/v1.0.1/Backfranz-Windows-x64.zip), extraer la carpeta completa y abrir `Backfranz.exe`. |
+| Android | [Descargar el APK](https://github.com/Alexwuuu1/backfranz/releases/download/v1.0.1/Backfranz-Android.apk) e instalarlo en un dispositivo con Android 8.0 o posterior. Los controles táctiles y las opciones de las actividades se ampliaron para jugar en horizontal. |
 
 Para Windows, usar `Tools → Backfranz → Exportar → Windows x64`. El exportador genera `../Builds/Backfranz-Jugable/Backfranz.exe` respecto a la raíz del proyecto. Distribuir en ZIP la carpeta completa, incluidos `Backfranz_Data`, `UnityPlayer.dll` y los demás archivos generados.
 
