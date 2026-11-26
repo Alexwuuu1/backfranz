@@ -12,6 +12,7 @@ public static class BackfranzSmoke
 {
     static int step;
     static double started;
+    static Vector3 titleStart;
     static BackfranzSmoke() { EditorApplication.playModeStateChanged+=Changed; }
     public static void Run()
     {
@@ -44,11 +45,21 @@ public static class BackfranzSmoke
                 Check(ui.menu.activeSelf,"Main menu visible");
                 Check(Array.Exists(ui.sound.GetComponents<AudioSource>(),source=>source.loop&&source.clip&&
                     source.clip.name=="musica-menu"),"The original title theme is assigned to a looping source");
+                var walker=GameObject.Find("Yamil · escena de portada");
+                Check(walker,"The title builds the animated campus scene");
+                var backdrop=GameObject.Find("Escena animada").GetComponent<RawImage>().rectTransform;
+                Check(backdrop.anchorMin==Vector2.zero&&backdrop.anchorMax==Vector2.one&&
+                    ui.menu.GetComponent<Image>().color.a==0&&ui.firstButton.image.color.a==0,
+                    "The title fills the viewport with transparent menu controls");
+                titleStart=walker.transform.position;
                 Directory.CreateDirectory("Docs/Hito3/Capturas");
                 Capture("Docs/Hito3/Capturas/01-menu-dia.png");step++;
             } else if(step==1 && t>7) {
                 var transition=UnityEngine.Object.FindFirstObjectByType<BackfranzTransition>();
                 Check(transition.darkBackground.color.a==0 && transition.flash.color.a==0,"Main menu stays in daylight");
+                Check(Vector3.Distance(GameObject.Find("Yamil · escena de portada").transform.position,titleStart)>1,
+                    "Yamil walks across the title scene");
+                Capture("Docs/Hito3/Capturas/05-menu-umbral.png");
                 ui.Options();Check(ui.options.activeInHierarchy,"Options opens");
                 const string volumeKey = "Backfranz.Volume";
                 bool hadVolume = PlayerPrefs.HasKey(volumeKey);
@@ -67,10 +78,18 @@ public static class BackfranzSmoke
                 ui.Extras();Check(ui.extras.activeInHierarchy,"Extras gallery opens");ui.ClosePanel();
                 ui.Credits();Check(ui.credits.activeInHierarchy,"Credits opens");ui.ClosePanel();
                 ui.AskQuit();Check(ui.confirmation.activeInHierarchy,"Quit confirmation opens");ui.ClosePanel();step++;
-            } else if(step==2 && t>8) {ui.Play();step++;}
+            } else if(step==2 && t>8) {
+                ui.Play();
+                Check(GameObject.Find("Cierre del ascensor"),"New Game starts the title transition before loading");
+                step++;
+            }
             else if(step==3 && SceneManager.GetActiveScene().name=="Nivel01" && t>10) {
                 Check(ui.gameplay,"Play loads Nivel01");
                 var session=UnityEngine.Object.FindFirstObjectByType<SessionFlow>();
+                var voice=Array.Find(ui.sound.GetComponents<AudioSource>(),source=>source.clip&&source.clip.name=="dialogo-yamil");
+                Check(voice&&voice.clip.length<.061f,"Visible dialogue produces a short synthesized voice pulse");
+                session.Player.Interact();
+                Check(!voice.isPlaying,"Skipping the dialogue text stops the voice pulse");
                 ui.Pause();
                 Check(!ui.menu.activeSelf,"Pause does not cover the opening dialogue");
                 Check(GameObject.Find("Cartela de apertura"),"The first day has its own opening caption");
@@ -109,7 +128,8 @@ public static class BackfranzSmoke
     static void Capture(string path)
     {
         var canvases=UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None);
-        var camera=UnityEngine.Object.FindFirstObjectByType<Camera>();
+        var camera=Camera.main;
+        if(!camera)camera=Array.Find(UnityEngine.Object.FindObjectsByType<Camera>(FindObjectsSortMode.None),candidate=>candidate.isActiveAndEnabled);
         var target=new RenderTexture(1600,900,24);
         var previous=RenderTexture.active;
         foreach(var canvas in canvases)

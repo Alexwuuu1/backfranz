@@ -18,6 +18,7 @@ public static class BackfranzPlayableSmoke
     static bool startedGame,returning,loadingSave;
     static string awaitedEscort;
     static double escortWaitUntil;
+    static double auditoriumRetryDeadline;
     static SpriteRenderer observedDoor;
     static SpriteRenderer observedGate;
     static Vector3 gateScale;
@@ -51,6 +52,7 @@ public static class BackfranzPlayableSmoke
         started=EditorApplication.timeSinceStartup;checks=0;startedGame=returning=loadingSave=false;
         normalWalkSeconds=horrorWalkSeconds=0;
         awaitedEscort=null;
+        auditoriumRetryDeadline=0;
         observedDoor=null;filmedDoor=false;
         if(TestSave)PlayerPrefs.DeleteKey("Backfranz.Smoke.Endings");
         if(SessionState.GetBool("Backfranz.SmokeFinaleOnly",false)){
@@ -90,6 +92,44 @@ public static class BackfranzPlayableSmoke
     }
     static void LiftTo(SessionFlow s,int floor){OpenLift(s);s.ChooseFloor(floor);Check(s.Crossing,"Floor button starts transition");}
     static void CaptureHere(SessionFlow s,string file){s.SendMessage("LateUpdate");s.SendMessage("RefreshHUD");Capture(file);}
+
+    static void CheckThought(SessionFlow session,string expected)
+    {
+        session.SendMessage("RefreshHUD");
+        var mission=GameObject.Find("Misión actual");
+        Check(mission&&Array.Exists(mission.GetComponentsInChildren<Text>(),label=>label.text.Contains(expected)),
+            "Yamil's thought shows "+expected);
+    }
+
+    static GameObject OpenBackpack()
+    {
+        var opener=GameObject.Find("Abrir mochila").GetComponent<UnityEngine.UI.Button>();
+        Check(opener.IsInteractable()&&opener.targetGraphic.raycastTarget,"Backpack has a clickable HUD button");
+        opener.onClick.Invoke();
+        var panel=GameObject.Find("Mochila de Yamil");
+        Check(panel&&Time.timeScale==0,"Backpack opens and pauses gameplay");
+        return panel;
+    }
+
+    static void CheckBackpackItem(GameObject panel,string item,string description,string sprite)
+    {
+        var row=Array.Find(panel.GetComponentsInChildren<UnityEngine.UI.Button>(),button=>button.name==item);
+        Check(row,"Collected item is listed: "+item);
+        row.onClick.Invoke();
+        var labels=panel.GetComponentsInChildren<UnityEngine.UI.Text>();
+        Check(Array.Exists(labels,label=>label.name=="Nombre del objeto"&&label.text==item)&&
+            Array.Exists(labels,label=>label.name=="Descripción del objeto"&&label.text.Contains(description)),
+            "Selecting the item shows its name and description: "+item);
+        Check(Array.Exists(panel.GetComponentsInChildren<UnityEngine.UI.Image>(),image=>
+            image.name=="Sprite del objeto"&&image.isActiveAndEnabled&&image.sprite&&image.sprite.name==sprite),
+            "The item preview displays its sprite: "+item);
+    }
+
+    static void CloseBackpack(GameObject panel)
+    {
+        Array.Find(panel.GetComponentsInChildren<UnityEngine.UI.Button>(),button=>button.name=="Cerrar").onClick.Invoke();
+        Check(!panel.activeSelf&&Time.timeScale==1,"Closing the backpack resumes gameplay");
+    }
     static void SetSteps()
     {
         steps=new Queue<Action<SessionFlow>>();
@@ -127,7 +167,7 @@ public static class BackfranzPlayableSmoke
             Check(s.GetComponent<AudioSource>().outputAudioMixerGroup==s.Sound.AmbientGroup,
                 "The campus ambience is assigned to the ambience bus");
             var soundLibrary=Resources.LoadAll<AudioClip>("Backfranz/Audio");
-            Check(soundLibrary.Length==84,"All 84 sounds are available in play mode");
+            Check(soundLibrary.Length==85,"All 85 sounds are available in play mode");
             foreach(var clip in soundLibrary)
             {
                 bool loop=clip.name.StartsWith("ambiente-",StringComparison.Ordinal)||clip.name=="musica-menu";
@@ -179,9 +219,7 @@ public static class BackfranzPlayableSmoke
                 s.SendMessage("UpdateTutorial");
             }
             Check(Array.Exists(tutorial.GetComponentsInChildren<Text>(),t=>t.text.Contains("2/4")),"Tutorial advances after actual walking");
-            var mission=GameObject.Find("Misión actual");
-            Check(mission&&Array.Exists(mission.GetComponentsInChildren<Text>(),label=>label.text.Contains("gradas de Landaeta")),
-                "Mission panel tells the player how to reach Block A");
+            CheckThought(s,"Debería subir por las gradas de Landaeta");
             Use(s,s.World.StudentContact);Check(s.DialogueOpen,"Student can be approached and spoken to");
             Check(Array.Exists(GameObject.Find("Diálogo").GetComponentsInChildren<Image>(),
                 portrait=>portrait.sprite&&portrait.sprite.name=="npc-estudiante"),
@@ -195,6 +233,14 @@ public static class BackfranzPlayableSmoke
             Check(!tutorial.activeSelf&&Time.timeScale==0,"Pause hides the tutorial and freezes gameplay");
             pauseUi.Resume();s.SendMessage("UpdateTutorial");
             Check(tutorial.activeSelf&&Array.Exists(tutorial.GetComponentsInChildren<Text>(),t=>t.text.Contains("4/4")),"Resume restores the final reception tutorial step");
+            Walk(s,s.World.Cell(Entrance,8,9));
+            var yamil=s.Player.GetComponent<SpriteRenderer>();
+            var walkingDirections=new[]{Vector2.down,Vector2.left,Vector2.right,Vector2.up};
+            for(int direction=0;direction<walkingDirections.Length;direction++){
+                s.Player.Move(walkingDirections[direction],.05f);
+                int frame=int.Parse(yamil.sprite.name.Substring("yamil-".Length));
+                Check(frame>=16+direction*6&&frame<22+direction*6,"Yamil uses the detailed walk cycle in direction "+direction);
+            }
             Walk(s,s.World.Cell(Entrance,9,8));CaptureHere(s,"01-landaeta.png");
             Walk(s,s.World.StreetFoot);
             Check(!s.World.HasLineOfSight(s.World.Cell(Entrance,7,11),s.World.StreetFoot+Vector2.up),
@@ -207,6 +253,7 @@ public static class BackfranzPlayableSmoke
             Check(!s.World.CanStand(s.World.Cell(Entrance,15,17)),"Street facade blocks the player");
             Use(s,s.World.StreetDoor);
             Check(s.Crossing,"Street entrance opens with a transition");
+            Check(yamil.sprite.name=="yamil-49","Yamil reaches toward the side door while the crossing begins");
         });
         steps.Enqueue(s=>{
             Check(s.Room==Ground,"Side entrance reaches planta baja");
@@ -249,6 +296,14 @@ public static class BackfranzPlayableSmoke
             }
             Check(Array.Exists(s.GetComponents<AudioSource>(),source=>source.clip&&source.clip.name=="ambiente-campus"),
                 "Entering reception selects the campus ambience");
+            CheckThought(s,"Debería ir directo a Recepción");
+            var empty=OpenBackpack();
+            Check(Array.Exists(empty.GetComponentsInChildren<UnityEngine.UI.Text>(),label=>label.text=="Mochila vacía")&&
+                empty.GetComponentsInChildren<UnityEngine.UI.Button>().Length==1,"Empty backpack shows no uncollected items");
+            CloseBackpack(empty);
+            Check(s.World.FindRoute(s.Player.Position,s.World.ReceptionContact).Count>0,
+                "Reception is reachable from the entrance before biometric registration");
+            CaptureHere(s,"02-pb-llegada.png");
             Check(!s.World.CanStand(s.World.Cell(Ground,44,5)),"Space beside the entrance corridor is outside the map");
             Walk(s,s.World.Cell(Ground,57,14));CaptureHere(s,"02-pb-giro.png");
             Check(s.World.FindRoute(s.Player.Position,s.World.Lift(Ground)).Count==0,"Closed security blocks the route to the elevator");
@@ -266,6 +321,12 @@ public static class BackfranzPlayableSmoke
             Time.timeScale=0;s.Player.Interact();Check(s.DialogueOpen&&!s.HasCard,"Pause blocks dialogue actions");Time.timeScale=1;
             FinishDialogue(s);
             Check(s.Room==Ground&&!s.DialogueOpen&&s.HasCard&&s.HasSchedule&&s.Visited==1,"Reception registers the player from the hall");
+            CheckThought(s,"Puedo escanear mi huella");
+            var backpack=OpenBackpack();
+            CheckBackpackItem(backpack,"Horario de inducción","seis pisos","campus-item-horario");
+            CheckBackpackItem(backpack,"Credencial de estudiante","registrar mi huella","card");
+            CaptureHere(s,"mochila-credencial.png");
+            CloseBackpack(backpack);
             CaptureHere(s,"02-pb-recepcion.png");
             var lane=s.World.SecurityPoint(2,true);
             observedGate=Array.Find(s.World.GetComponentsInChildren<SpriteRenderer>(),renderer=>
@@ -292,6 +353,11 @@ public static class BackfranzPlayableSmoke
         steps.Enqueue(s=>{
             Check(s.World.SecurityOpen(AccessibleLane),"Accessible door opens on guard authorization");
             Walk(s,s.World.SecurityPoint(AccessibleLane,true));Walk(s,s.World.SecurityPoint(AccessibleLane,false));
+            var west=s.World.Cell(Ground,7,17);
+            Check(s.World.FindRoute(west,s.World.Stairs(Ground,1)).Count>0&&
+                s.World.FindRoute(west,s.World.DoorPoint(Ground,AuditoriumIndex)).Count>0&&
+                s.World.FindRoute(west,s.World.AuditoriumServiceDoor(Ground)).Count>0,
+                "West lobby connects stairs, auditorium and service");
             Check(!s.World.CanStand(s.World.Cell(Ground,22,14)),"Seated NPC has a collision");
             Use(s,s.World.Cell(Ground,21,14));
             Check(s.DialogueOpen,"Seated student responds in the common hall");
@@ -324,6 +390,10 @@ public static class BackfranzPlayableSmoke
             Check(s.Room==FirstStairwell && Vector2.Distance(s.Player.Position,s.World.Cell(s.Room,8,11))<.1f,
                 "Stairwell position survives continuing");
             Check(s.HasCard&&s.World.SecurityOpen(AccessibleLane)&&s.World.SecurityOpen(2),"Registration and both gate unlocks survive continuing");
+            var backpack=OpenBackpack();
+            CheckBackpackItem(backpack,"Credencial de estudiante","Recepción","card");
+            CheckBackpackItem(backpack,"Horario de inducción","ascensor","campus-item-horario");
+            CloseBackpack(backpack);
             Use(s,s.World.StairLanding(s.Room,true));Check(s.Crossing,"Upper landing connects to floor 1");
         });
         steps.Enqueue(s=>{
@@ -375,23 +445,76 @@ public static class BackfranzPlayableSmoke
             int floor=i;
             steps.Enqueue(s=>{
                 Check(s.Room==ForFloor(floor,false),"Normal floor "+floor+" selected");
-                var mission=GameObject.Find("Misión actual");
-                Check(mission&&Array.Exists(mission.GetComponentsInChildren<Text>(),label=>label.text.Contains("Piso "+floor+" · Habla con")),
-                    "Mission panel updates with the guide on floor "+floor);
+                CheckThought(s,"Tengo que hablar con ");
                 Check(s.World.CanStand(s.Player.Position),"Safe elevator arrival on "+floor);
+                if(floor==1)
+                {
+                    Vector2 across=s.World.Cell(s.Room,17,15), east=s.World.Cell(s.Room,19,15);
+                    Check(s.World.HasLineOfSight(across,east,false),"Daytime Services has a direct passage through the north hall");
+                    int office=System.Linq.Enumerable.First(s.World.UpperInteriorsOn(s.Room),id=>UpperInteriorName(id)=="Posgrado");
+                    Walk(s,s.World.UpperInteriorDoor(office));
+                    var mission=GameObject.Find("Misión actual").GetComponent<CanvasGroup>();
+                    var controls=GameObject.Find("Controles inferiores").GetComponent<RectTransform>();
+                    Check(controls.anchorMax.y<.10f&&mission.GetComponent<RectTransform>().anchorMax.y<.33f&&
+                        mission.alpha==1f&&!mission.blocksRaycasts,"The new thought appears at the bottom without covering the upper doors");
+                    CaptureHere(s,"hud-puerta-mision.png");
+                    var plaque=GameObject.Find("Rótulo · Posgrado");
+                    Check(plaque&&Camera.main.WorldToViewportPoint(plaque.transform.position).y<.97f,
+                        "The camera shows the nameplate above the north door");
+                    var toggle=GameObject.Find("Consultar misión").GetComponent<Button>();
+                    toggle.onClick.Invoke();
+                    Check(mission.alpha==0f,"The player can immediately hide the thought");
+                    toggle.onClick.Invoke();
+                    Check(mission.alpha==1f,"The player can consult the current thought again");
+                    toggle.onClick.Invoke();
+                    CaptureHere(s,"hud-puerta-despejada.png");
+                    Walk(s,s.World.Cell(s.Room,24,16));
+                    CaptureHere(s,"piso-1-dia-pasillo.png");
+                }
                 for(int core=0;core<StairwellCount;core++)
                     Check(s.World.FindRoute(s.Player.Position,s.World.Stairs(s.Room,core)).Count>0,"Walkable stair opening "+core+" on floor "+floor);
                 Use(s,s.World.MainStop(s.Room));
                 Check(!s.HasVisited(floor),"The hall's sign directs the first-day activity on floor "+floor);
+                var marker=GameObject.Find("Punto de inducción").GetComponent<SpriteRenderer>();
+                Check(marker.sprite.name=="solid"&&marker.sortingOrder<0,
+                    "The induction contact is marked on the floor instead of by a loose item");
                 foreach(var stop in s.World.Stops(s.Room)){
                     Check(s.World.FindRoute(s.Player.Position,stop.Position).Count>0||Vector2.Distance(s.Player.Position,stop.Position)<.2f,"Accessible landmark: "+stop.Label);
                 }
                 if(floor==1)CaptureHere(s,"03-servicios.png");
-                if(floor==2)CaptureHere(s,"03-salud-y-cocina.png");
-                if(floor==3)CaptureHere(s,"04-computacion.png");
-                if(floor==5)CaptureHere(s,"05-taller.png");
+                if(floor==2)
+                {
+                    Check(s.World.HasLineOfSight(s.World.Cell(s.Room,19,15),s.World.Cell(s.Room,21,15),false),
+                        "The clinical hall is open during induction");
+                    Walk(s,s.World.Cell(s.Room,13,13));
+                    CaptureHere(s,"piso-2-dia-cruce.png");
+                }
+                if(floor==3)
+                {
+                    CaptureHere(s,"04-computacion.png");
+                    Check(s.World.HasLineOfSight(s.World.Cell(s.Room,17,13),s.World.Cell(s.Room,17,11),false),
+                        "The central cross from the labs to the studios is open during induction");
+                    Walk(s,s.World.Cell(s.Room,17,13));
+                    CaptureHere(s,"piso-3-dia-cruce.png");
+                    Check(GameObject.Find("Grabadora de prácticas"),"Recorder is on the hallway table by Sonido during induction");
+                    Use(s,s.World.Cell(s.Room,25,7));
+                    Check(!GameObject.Find("Grabadora de prácticas"),"Collecting the recorder removes it from the table");
+                    var backpack=OpenBackpack();
+                    CheckBackpackItem(backpack,"Grabadora de prácticas","reproducir una voz","utileria-grabadora");
+                    CaptureHere(s,"mochila-grabadora.png");
+                    CloseBackpack(backpack);
+                }
+                if(floor==5)
+                {
+                    Check(s.World.HasLineOfSight(s.World.Cell(s.Room,25,10),s.World.Cell(s.Room,25,12),false),
+                        "The workshop east passage is open during induction");
+                    Walk(s,s.World.Cell(s.Room,20,8));
+                    CaptureHere(s,"05-taller.png");
+                }
                 if(floor==4){
                     CaptureHere(s,"05-aulas.png");
+                    Check(s.World.FindRoute(s.World.Cell(s.Room,15,15),s.World.Cell(s.Room,14,8)).Count>0,
+                        "The classroom cross reaches Aula 4A from the window corridor");
                     Check(GameObject.Find("Estudiante de Derecho"),"Scheduled student starts in the hall");
                     float clock=Time.time+5.5f;
                     for(int step=0;step<30;step++)s.World.UpdatePeople(s.Room,s.Player.Position,.1f,clock+step*.1f);
@@ -419,6 +542,11 @@ public static class BackfranzPlayableSmoke
         });
         steps.Enqueue(s=>{
             Use(s,s.World.MainStop(Top));
+            Check(s.World.HasLineOfSight(s.World.Cell(Top,27,9),s.World.Cell(Top,27,11),false),
+                "The east archive aisle is open during induction");
+            Walk(s,s.World.Cell(Top,22,6));
+            CaptureHere(s,"piso-6-dia-estantes.png");
+            Walk(s,s.World.MainStop(Top));
             Check(!GameObject.Find("Mecanismo de escape"),"The library first asks Yamil to speak with Alma");
             CheckUpperInteriors(s, active => {
                 SubmitInductionActivity(active,active.World.MainStop(Top),"Mostrador de biblioteca",0);
@@ -435,19 +563,107 @@ public static class BackfranzPlayableSmoke
             Check(s.DialogueOpen,"First altered arrival starts the escape introduction");
             FinishDialogue(s);
             Check(!GameObject.Find("La sombra"),"Provisional horror has no encounter");
+            CheckThought(s,"Tengo que hablar con la bibliotecaria (piso 6)");
             LiftTo(s,3);
         });
         steps.Enqueue(s=>{
             Check(s.Room==ForFloor(3,true),"Altered computer floor is accessible");
+            Check(!GameObject.Find("Interruptor"),"The disabled legacy switches are hidden in the computer hall");
+            Check(!GameObject.Find("Grabadora de prácticas"),"The recorder already collected by day does not reappear at night");
+            var upper=s.World.Cell(s.Room,17,13);
+            var lower=s.World.Cell(s.Room,17,11);
+            Check(!s.World.HasLineOfSight(upper,lower,false)&&s.World.FindRoute(upper,lower).Count>0,
+                "The racks close the central cross at night while a side route stays open");
+            Walk(s,lower);
+            CaptureHere(s,"piso-3-noche-cruce.png");
+            CheckCampusRadio(s,"Sonido está cerrado");
             foreach(int interior in s.World.UpperInteriorsOn(s.Room)){
                 if(UpperInteriorName(interior)!="Sonido")continue;
                 Use(s,s.World.UpperInteriorDoor(interior));
                 Check(!s.Crossing&&s.Room==ForFloor(3,true),"Locked altered sound room keeps the player in the hall");
             }
-            LiftTo(s,6);
+            LiftTo(s,5);
         });
         steps.Enqueue(s=>{
+            Check(s.Room==ForFloor(5,true),"The altered workshop floor is accessible");
+            Check(!GameObject.Find("Vitrina"),"The inactive legacy workshop puzzle has no visible collectible");
+            var south=s.World.Cell(s.Room,25,10);
+            var north=s.World.Cell(s.Room,25,12);
+            Check(!s.World.HasLineOfSight(south,north,false)&&s.World.FindRoute(north,south).Count>0,
+                "At night the workshop shutter closes the east passage and leaves a central detour");
+            Check(s.World.FindRoute(north,s.World.Cell(s.Room,26,6)).Count>0,
+                "Elena's permanent refuge is reachable without the cable");
+            Walk(s,north);
+            CaptureHere(s,"piso-5-noche-cortina.png");
+            foreach(int interior in s.World.UpperInteriorsOn(s.Room))
+                if(UpperInteriorName(interior)=="Taller"){Use(s,s.World.UpperInteriorDoor(interior));return;}
+            Check(false,"The altered workshop door exists");
+        });
+        steps.Enqueue(s=>{
+            Check(IsUpperInterior(s.Room)&&UpperInteriorName(s.Room)=="Taller"&&GameObject.Find("Cuña de goma"),
+                "A wedge left during induction is still on the workshop table at night");
+            Walk(s,s.World.Cell(s.Room,5,8));
+            CaptureHere(s,"objeto-cuna-taller.png");
+            s.Player.Interact();
+            Check(!GameObject.Find("Cuña de goma"),"Collecting the wedge removes it from the workshop table");
+            Check(GameObject.Find("Cable de extensión"),"The cable is still available in the workshop at night");
+            Walk(s,s.World.Cell(s.Room,14,9));
+            CaptureHere(s,"piso-5-noche-cable.png");
+            s.Player.Interact();
+            Check(!GameObject.Find("Cable de extensión"),"Collecting the cable clears the workshop rack");
+            Use(s,s.World.UpperInteriorExit(s.Room));
+        });
+        steps.Enqueue(s=>{
+            var west=s.World.Cell(s.Room,9,16);
+            var east=s.World.Cell(s.Room,20,5);
+            const string westLight="Luz portátil · Banco de trabajo",eastLight="Luz portátil · Mesa de montaje";
+            Check(!GameObject.Find(westLight)&&!GameObject.Find(eastLight),"Portable workshop lights start off");
+            Use(s,west);
+            Check(GameObject.Find(westLight),"Connecting the cable powers the workshop bench");
+            Use(s,east);
+            Check(GameObject.Find(westLight)&&!GameObject.Find(eastLight),"One cable cannot power two workshop lights");
+            Use(s,west);Use(s,east);
+            Check(!GameObject.Find(westLight)&&GameObject.Find(eastLight),"The cable can be moved to the assembly table");
+            Walk(s,s.World.Cell(s.Room,22,6));
+            CaptureHere(s,"piso-5-noche-montaje.png");
+            var backpack=OpenBackpack();
+            CheckBackpackItem(backpack,"Cable de extensión","mesa de montaje","utileria-bobina-cable");
+            CloseBackpack(backpack);
+            if(TestSave)
+            {
+                Check(s.SaveGame(),"The cable and powered workshop light can be saved");
+                loadingSave=true;s.Menu();
+            }
+        });
+        steps.Enqueue(s=>{
+            Check(GameObject.Find("Luz portátil · Mesa de montaje"),"The powered workshop light survives continuing");
+            Use(s,s.World.Cell(s.Room,20,5));
+            Use(s,s.World.Cell(s.Room,9,16));
+        });
+        steps.Enqueue(s=>LiftTo(s,6));
+        steps.Enqueue(s=>{
             Check(s.Room==DarkTop&&s.Horror==SessionFlow.HorrorState.Active,"Altered library remains accessible");
+            var lower=s.World.Cell(DarkTop,27,9);
+            var upper=s.World.Cell(DarkTop,27,11);
+            Check(!s.World.HasLineOfSight(lower,upper,false)&&s.World.FindRoute(upper,lower).Count>0,
+                "A fallen shelving unit closes the east passage while the middle remains walkable");
+            Walk(s,upper);
+            CaptureHere(s,"piso-6-noche-paso-cerrado.png");
+            Check(!GameObject.Find("Figura entre los estantes"),"The archive is empty on first arrival");
+            UseCampaignDoor(s,"Sala de lectura");
+        });
+        steps.Enqueue(s=>{
+            Check(IsUpperInterior(s.Room)&&UpperInteriorName(s.Room)=="Sala de lectura",
+                "Dark reading room is reachable through its wall door");
+            Walk(s,s.World.Entry(s.Room)+Vector2.up*4);
+            CaptureHere(s,"piso-6-noche-sala-de-lectura.png");
+            LeaveCampaignRoom(s);
+        });
+        steps.Enqueue(s=>{
+            Check(s.Room==DarkTop&&GameObject.Find("Figura entre los estantes"),
+                "The figure appears between the shelves on returning");
+            Walk(s,s.World.Cell(DarkTop,22,8));
+            CaptureHere(s,"piso-6-noche-aparicion.png");
             if (TestSave) {
                 Check(s.SaveGame(),"Active horror is saved");
                 loadingSave=true;s.Menu();
@@ -455,19 +671,130 @@ public static class BackfranzPlayableSmoke
         });
         steps.Enqueue(s=>{
             Check(s.Room==DarkTop&&s.Horror==SessionFlow.HorrorState.Active,"Continuing retains altered library and active horror");
+            var backpack=OpenBackpack();
+            CheckBackpackItem(backpack,"Grabadora de prácticas","reproducir una voz","utileria-grabadora");
+            CheckBackpackItem(backpack,"Cuña de goma","mantenerla abierta","utileria-cuna-goma");
+            CaptureHere(s,"mochila-cuna.png");
+            CloseBackpack(backpack);
             OpenLift(s);s.ChooseFloor(0);
             Check(s.Crossing&&s.Horror==SessionFlow.HorrorState.Active,"Subsequent library descent does not replay the event");
         });
         steps.Enqueue(s=>{
             Check(s.Room==DarkGround&&s.Horror==SessionFlow.HorrorState.Active,"Altered ground floor loads without retriggering");
+            Walk(s,s.World.Cell(DarkGround,36,10));
+            s.SendMessage("RefreshHUD");
+            Check(Array.Exists(UnityEngine.Object.FindObjectsByType<Text>(FindObjectsSortMode.None),
+                label=>label.text.Contains("golpe vino de debajo de la rejilla")),"The first service crossing cues a knock beneath the grate");
+            Walk(s,s.World.Cell(DarkGround,40,15));
+            var reader=GameObject.Find("Lector sin operador").GetComponent<SpriteRenderer>();
+            Check(reader.color.r>.9f&&!s.DialogueOpen,"The unattended reader activates during movement without a dialogue lock");
             Use(s,s.World.Exit(DarkGround));
             Check(!s.Finished,"The escape gate refuses entry before the mechanisms are solved");
             Use(s,s.World.GalleryEntrance);
             Check(s.Room==DarkGround&&!s.Crossing,"The service gallery stays sealed before the evidence and acoustic channel");
-            CheckGroundDoors(s,DarkGround,false,()=>CheckEscapeCampaign(s));
+            Check(GameObject.Find("Testigo de acceso a la galería").GetComponent<SpriteRenderer>().color.r>.9f,
+                "The gallery threshold marks the closed entrance in amber");
+            CheckGroundDoors(s,DarkGround,false,()=>QueueAuditoriumRescues(s));
         });
     }
     static bool TestSave => Application.isBatchMode && Array.Exists(Environment.GetCommandLineArgs(), arg=>arg=="-backfranzSmokeSave");
+
+    static void QueueAuditoriumRescues(SessionFlow session)
+    {
+        const string saveKey="Backfranz.Smoke.Save.v1";
+        string branchStart="";
+        if(TestSave)
+        {
+            Check(session.SaveGame(),"The hall can be saved before choosing an auditorium route");
+            branchStart=PlayerPrefs.GetString(saveKey);
+            Check(branchStart.Contains("\"auditoriumTools\":3"),"The isolated route fixture owns both auditorium tools");
+        }
+        foreach(var (items,name) in TestSave?new[]{(0,"butacas"),(1,"grabadora"),(3,"cuna")}:new[]{(3,"cuna")})
+        {
+            bool wedge=items==3, recorder=items==1;
+            if(TestSave)steps.Enqueue(s=>{
+                PlayerPrefs.SetString(saveKey,branchStart.Replace("\"auditoriumTools\":3","\"auditoriumTools\":"+items));
+                loadingSave=true;s.Menu();
+            });
+            steps.Enqueue(s=>{
+                if(wedge){
+                    Use(s,s.World.AuditoriumServiceDoor(DarkGround));
+                    Check(!s.Crossing&&GameObject.Find("Servicio").GetComponent<SpriteRenderer>().sprite.name.EndsWith("-06"),
+                        "The wedge keeps the service frame open before crossing");
+                    if(TestSave){
+                        Check(s.SaveGame(),"The wedged door state can be saved");
+                        loadingSave=true;s.Menu();
+                    }
+                }else{
+                    Use(s,s.World.AuditoriumServiceDoor(DarkGround));
+                    Check(!s.Crossing,"The public route remains available without the wedge");
+                }
+            });
+            steps.Enqueue(s=>{
+                if(wedge){
+                    Check(GameObject.Find("Servicio").GetComponent<SpriteRenderer>().sprite.name.EndsWith("-06"),
+                        "The service door stays open after continuing");
+                    Use(s,s.World.AuditoriumServiceDoor(DarkGround));
+                }else UseCampaignDoor(s,"Auditorio");
+            });
+            steps.Enqueue(s=>{
+                Check(s.Room==InteriorRoom(AuditoriumIndex,true)&&GameObject.Find("Presencia del Auditorio"),
+                    "The altered auditorium has a patrolling presence");
+                if(items==0)
+                {
+                    Walk(s,s.World.Cell(s.Room,19,11));
+                    auditoriumRetryDeadline=EditorApplication.timeSinceStartup+5;
+                }
+            });
+            steps.Enqueue(s=>{
+                if(items==0)Check(Vector2.Distance(s.Player.Position,s.World.Entry(s.Room))<.1f,
+                    "Approaching the presence sends Yamil back to the entrance for another try");
+                if(recorder)
+                {
+                    Check(Resources.Load<AudioClip>("Backfranz/Audio/auditorio-grabadora"),"Auditorium recording imports as an audio clip");
+                    Use(s,s.World.Cell(s.Room,19,6));
+                    Check(GameObject.Find("Grabadora en reproducción"),"The recorder visibly plays at the east sound table");
+                    CheckThought(s,"Ahora mira hacia la grabadora");
+                    CaptureHere(s,"auditorio-grabadora.png");
+                    Walk(s,s.World.Cell(s.Room,11,5));
+                }
+                Use(s,s.World.Cell(s.Room,4,12));
+                Check(s.DialogueOpen,"Mauro explains the refuge and the side door");
+                FinishDialogue(s);
+                if(!wedge)
+                {
+                    Use(s,s.World.AuditoriumServiceDoor(s.Room));
+                    Check(!s.Crossing,"The spring-loaded door cannot take the escort without the wedge");
+                    Walk(s,s.World.InteriorExit(s.Room));
+                }
+                else Walk(s,s.World.AuditoriumServiceDoor(s.Room));
+                WaitForEscort("Mauro");
+            });
+            steps.Enqueue(s=>{
+                s.Player.Interact();
+                Check(s.Crossing,"Mauro can leave by "+name);
+            });
+            steps.Enqueue(s=>{
+                Check(s.Room==DarkGround&&GameObject.Find("Mauro"),"Mauro follows Yamil through the matching door");
+                var door=wedge?s.World.AuditoriumServiceDoor(DarkGround):s.World.DoorPoint(DarkGround,AuditoriumIndex);
+                Check(Vector2.Distance(s.Player.Position,door)<1.2f,"Rescue returns through the chosen auditorium exit");
+                Walk(s,s.World.Cell(DarkGround,3,17));
+                WaitForEscort("Mauro");
+            });
+            steps.Enqueue(s=>{
+                s.Player.Interact();
+                Check(s.DialogueOpen,"Mauro reaches the refuge by "+name);
+                CaptureHere(s,"auditorio-refugio-"+name+".png");
+                FinishDialogue(s);
+                var journal=OpenEscapeJournal();
+                JournalButton(journal,"Rescates").onClick.Invoke();
+                Check(Array.Exists(journal.GetComponentsInChildren<Text>(),label=>label.text=="Rescates · 1/7"),
+                    "The auditorium rescue counts toward evacuation");
+                JournalButton(journal,"Cerrar").onClick.Invoke();
+            });
+        }
+        steps.Enqueue(CheckEscapeCampaign);
+    }
 
     static void CheckEscapeCampaign(SessionFlow session)
     {
@@ -492,6 +819,7 @@ public static class BackfranzPlayableSmoke
                     (1,"Posgrado","Puente Norte"),(2,"Histología y Fisiología","Puente Este"),(3,"Laboratorio PC","Puente Sur")
                 }){
                     if(current!=partFloor)steps.Enqueue(s=>LiftTo(s,partFloor));
+                    if(partFloor==1)QueueServicesNight();
                     steps.Enqueue(s=>{
                         foreach(int interior in s.World.UpperInteriorsOn(s.Room))
                             if(UpperInteriorName(interior)==roomName){Use(s,s.World.UpperInteriorDoor(interior));return;}
@@ -499,6 +827,14 @@ public static class BackfranzPlayableSmoke
                     });
                     steps.Enqueue(s=>{
                         Check(Title(s.Room)==roomName&&GameObject.Find(item),"Physical relay part is visible in "+roomName);
+                        if(partFloor==1){
+                            Walk(s,s.World.Entry(s.Room)+Vector2.up*4);
+                            CaptureHere(s,"piso-1-noche-posgrado.png");
+                        }
+                        if(partFloor==3){
+                            Walk(s,s.World.Entry(s.Room)+Vector2.up*4);
+                            CaptureHere(s,"piso-3-noche-pc.png");
+                        }
                         Use(s,s.World.Entry(s.Room)+Vector2.right*2+Vector2.up);
                         Check(!GameObject.Find(item),"Relay part can be collected: "+item);
                         Use(s,s.World.UpperInteriorExit(s.Room));
@@ -507,6 +843,7 @@ public static class BackfranzPlayableSmoke
                 }
             }
             if(current!=clueFloor)steps.Enqueue(s=>LiftTo(s,clueFloor));
+            if(floor==2&&clueFloor==4)QueueClassroomLoop();
             if(floor==6)steps.Enqueue(s=>{
                 Use(s,s.World.Cell(s.Room,x,y));
                 var panel=GameObject.Find("Mecanismo de escape");
@@ -553,31 +890,138 @@ public static class BackfranzPlayableSmoke
                 Check(!Array.Exists(page.GetComponentsInChildren<Text>(),label=>label.text.Contains("El círculo con tapa blanca")),
                     "Journal omits undiscovered clues");
                 JournalButton(page,"Pedir orientación").onClick.Invoke();
-                Check(Array.Exists(page.GetComponentsInChildren<Text>(),label=>label.text.Contains("busca a Profesora")),
+                Check(Array.Exists(page.GetComponentsInChildren<Text>(),label=>label.text.Contains("hablar con la profesora (piso 4)")),
                     "Optional guidance identifies the next witness");
                 JournalButton(page,"Cerrar").onClick.Invoke();
             });
             current=floor;
         }
         QueueRescues();
+        QueueHealthRescue();
         QueueEscortRescues();
         steps.Enqueue(s=>{
             Check(GameObject.Find("Dalia")&&GameObject.Find("Lázaro")&&GameObject.Find("Nuria"),
                 "Rescued NPCs move to the evacuation area");
-            Check(GameObject.Find("Inés")&&GameObject.Find("Marcos")&&GameObject.Find("Elena"),
+            Check(GameObject.Find("Inés")&&GameObject.Find("Marcos")&&GameObject.Find("Elena")&&GameObject.Find("Mauro"),
                 "Escorted survivors also arrive at the evacuation area");
             Use(s,s.World.Exit(DarkGround));
             Check(s.DialogueOpen&&!s.Finished,"Opening the gate begins the blackout finale");
             FinishDialogue(s);
+            CheckThought(s,"Tengo que llegar a la palanca");
             Use(s,s.World.Exit(DarkGround));
             Check(!s.Finished,"The shutter blocks the ending until the emergency lever is used");
             Use(s,s.World.Cell(DarkGround,58,11));
             Check(s.DialogueOpen,"The emergency lever opens the three escape choices");
             FinishDialogue(s);
+            CheckThought(s,"Puedo salir por el portón");
             if(TestSave)Check(s.SaveGame(),"The escape decision can be saved");
         });
         steps.Enqueue(CheckCompleteJournal);
         QueueFinaleEndings();
+    }
+
+    static void QueueClassroomLoop()
+    {
+        steps.Enqueue(s=>{
+            Check(s.Room==ForFloor(4,true),"The elevator reaches the altered classroom floor");
+            Walk(s,s.World.Cell(s.Room,11,4));
+            var backpack=OpenBackpack();
+            CheckBackpackItem(backpack,"Tiza blanca","cruz bajo el rótulo 4B","utileria-tiza-blanca");
+            CloseBackpack(backpack);
+            s.Player.Interact();
+            Check(GameObject.Find("Marca de tiza"),"Chalk marks the original classroom number");
+            Walk(s,s.World.Cell(s.Room,12,4));
+            CaptureHere(s,"piso-4-noche-marca.png");
+            Walk(s,s.World.Cell(s.Room,22,4));
+            for(int step=0;step<3;step++)s.Player.Move(Vector2.right,.10f);
+            Check(Vector2.Distance(s.Player.Position,s.World.Cell(s.Room,11,4))<1.2f,
+                "Walking past the repeated number returns to the original 4B");
+            CheckThought(s,"El pasillo se repite");
+            Check(GameObject.Find("Desvío"),"The loop reveals the door by the green light");
+            if(TestSave){
+                Check(s.SaveGame(),"The classroom loop discovery and chalk mark can be saved");
+                loadingSave=true;s.Menu();
+            }
+        });
+        steps.Enqueue(s=>{
+            Check(GameObject.Find("Marca de tiza")&&GameObject.Find("Desvío"),
+                "Continuing restores both the chalk mark and the discovered turnoff");
+            Walk(s,s.World.Cell(s.Room,20,5));
+            CaptureHere(s,"piso-4-noche-desvio.png");
+            s.Player.Interact();
+            Check(s.Crossing,"The revealed door crosses out of the repeating corridor");
+        });
+        steps.Enqueue(s=>{
+            Check(s.Room==ForFloor(4,true)&&Vector2.Distance(s.Player.Position,s.World.Cell(s.Room,22,8))<.15f,
+                "The turnoff arrives in the eastern passage toward Gesell");
+            Check(s.World.FindRoute(s.Player.Position,s.World.Cell(s.Room,26,18)).Count>0,
+                "Cámara Gesell is accessible from the revealed turnoff");
+        });
+    }
+
+    static void QueueServicesNight()
+    {
+        steps.Enqueue(s=>{
+            int hall=ForFloor(1,true);
+            Check(s.Room==hall,"The elevator reaches altered Services");
+            Check(!GameObject.Find("Llave técnica"),"The disabled legacy key is hidden in Services");
+            Check(!s.World.HasLineOfSight(s.World.Cell(hall,17,15),s.World.Cell(hall,19,15),false),
+                "The night shutter blocks the daylight route across the north hall");
+            var west=s.World.Cell(hall,12,15);
+            var path=s.World.FindRoute(s.Player.Position,west);
+            Check(path.Count>0&&path.Exists(point=>point.y-s.World.Offset(hall).y<=0),
+                "The lower corridor reaches the relay before recovering any optional item");
+            Walk(s,s.World.Cell(hall,21,16));
+            CaptureHere(s,"piso-1-noche-persiana.png");
+            Use(s,s.World.Cell(hall,21,6));
+            var backpack=OpenBackpack();
+            CheckBackpackItem(backpack,"Credencial de Mónica","Dirección de Carrera","bloque-a-item-credencial-salida");
+            CloseBackpack(backpack);
+            if(TestSave)
+            {
+                Check(s.SaveGame(),"Mónica's credential can be saved");
+                loadingSave=true;s.Menu();
+            }
+        });
+        steps.Enqueue(s=>{
+            var backpack=OpenBackpack();
+            CheckBackpackItem(backpack,"Credencial de Mónica","Dirección de Carrera","bloque-a-item-credencial-salida");
+            CloseBackpack(backpack);
+            UseCampaignDoor(s,"Dirección de Carrera");
+        });
+        steps.Enqueue(s=>{
+            Check(Title(s.Room)=="Dirección de Carrera","The south corridor leads to the Director's office");
+            var monica=s.World.Entry(s.Room)+new Vector2(2,2);
+            Use(s,monica);
+            Check(s.DialogueOpen,"Mónica accepts the credential and describes the detour");
+            FinishDialogue(s);
+            var backpack=OpenBackpack();
+            Check(!Array.Exists(backpack.GetComponentsInChildren<Button>(),button=>button.name=="Credencial de Mónica"),
+                "A returned credential is removed from the backpack");
+            CloseBackpack(backpack);
+            CaptureHere(s,"piso-1-noche-direccion.png");
+            LeaveCampaignRoom(s);
+        });
+        steps.Enqueue(s=>{
+            Check(GameObject.Find("Marca del desvío"),"Returning Mónica's credential reveals the marked route");
+            Walk(s,s.World.Cell(s.Room,17,8));
+            CaptureHere(s,"piso-1-noche-desvio.png");
+            if(TestSave)
+            {
+                Check(s.SaveGame(),"The marked detour can be saved");
+                loadingSave=true;s.Menu();
+            }
+        });
+        steps.Enqueue(s=>{
+            Check(GameObject.Find("Marca del desvío"),"The detour marks persist after continuing");
+            UseCampaignDoor(s,"Caja");
+        });
+        steps.Enqueue(s=>{
+            Check(Title(s.Room)=="Caja","Caja is also reachable through the night detour");
+            Walk(s,s.World.Entry(s.Room)+Vector2.up*4);
+            CaptureHere(s,"piso-1-noche-caja.png");
+            LeaveCampaignRoom(s);
+        });
     }
 
     static GameObject OpenEscapeJournal()
@@ -599,8 +1043,8 @@ public static class BackfranzPlayableSmoke
         var page=OpenEscapeJournal();
         bool legacyFinale=SessionState.GetBool("Backfranz.SmokeFinaleOnly",false);
         JournalButton(page,"Rescates").onClick.Invoke();
-        Check(Array.Exists(page.GetComponentsInChildren<Text>(),label=>label.text=="Rescates · 6/6"||
-            legacyFinale&&label.text=="Rescates · 3/6"),"The journal reports the rescue total");
+        Check(Array.Exists(page.GetComponentsInChildren<Text>(),label=>label.text=="Rescates · 7/7"||
+            legacyFinale&&(label.text=="Rescates · 6/7"||label.text=="Rescates · 3/7")),"The journal reports the rescue total");
         CaptureHere(s,"21-diario-rescates.png");
         JournalButton(page,"Pistas").onClick.Invoke();
         Check(Array.Exists(page.GetComponentsInChildren<Text>(),label=>label.text=="Pistas anotadas · 33"||
@@ -642,7 +1086,8 @@ public static class BackfranzPlayableSmoke
             bool legacyFinale=SessionState.GetBool("Backfranz.SmokeFinaleOnly",false);
             string countLabel=ending==EscapeArchive.Ending.Amanecer?"Personas a salvo · ":"Personas reunidas · ";
             Check(Array.Exists(UnityEngine.Object.FindObjectsByType<Text>(FindObjectsSortMode.None),
-                label=>label.text.Contains(countLabel+"6/6")||legacyFinale&&label.text.Contains(countLabel+"3/6")),
+                label=>label.text.Contains(countLabel+"7/7")||legacyFinale&&
+                    (label.text.Contains(countLabel+"6/7")||label.text.Contains(countLabel+"3/7"))),
                 "Ending distinguishes the assembled group from a successful group evacuation");
             var epilogue=Array.Find(UnityEngine.Object.FindObjectsByType<Text>(FindObjectsSortMode.None),
                 label=>label.text.StartsWith(EscapeArchive.Story(ending)+"\n\n",StringComparison.Ordinal));
@@ -670,8 +1115,7 @@ public static class BackfranzPlayableSmoke
         int current=0;
         foreach(var (floor,room,sourceFloor,source,person,item) in new[]{
             (0,"Café",2,"Cocina de prácticas","Dalia","Botella sellada"),
-            (3,"Fotografía",5,"Taller","Lázaro","Linterna de trabajo"),
-            (0,"Auditorio",2,"Sala de Simulación","Nuria","Botiquín portátil")
+            (3,"Fotografía",5,"Taller","Lázaro","Linterna de trabajo")
         }){
             if(current!=floor)steps.Enqueue(s=>LiftTo(s,floor));
             steps.Enqueue(s=>UseCampaignDoor(s,room));
@@ -701,10 +1145,80 @@ public static class BackfranzPlayableSmoke
         }
     }
 
+    static void QueueHealthRescue()
+    {
+        steps.Enqueue(s=>LiftTo(s,2));
+        steps.Enqueue(s=>{
+            Check(s.Room==ForFloor(2,true),"The elevator reaches the altered clinical wing");
+            var before=s.World.Cell(s.Room,19,15);
+            var after=s.World.Cell(s.Room,21,15);
+            Check(!s.World.HasLineOfSight(before,after,false),"The night isolation barrier closes the direct corridor");
+            Check(s.World.FindRoute(before,after).Exists(point=>point.y-s.World.Offset(s.Room).y<=1f),
+                "Both wings stay connected through the lower passage");
+            Walk(s,s.World.Cell(s.Room,22,15));
+            CaptureHere(s,"piso-2-noche-aislamiento.png");
+            UseCampaignDoor(s,"Sala de Simulación");
+        });
+        steps.Enqueue(s=>{
+            Check(Title(s.Room)=="Sala de Simulación"&&GameObject.Find("Nuria"),"Nuria waits beside a simulation bed");
+            Use(s,s.World.Cell(s.Room,7,10));
+            Check(s.DialogueOpen,"Nuria asks for the medical kit before following");
+            FinishDialogue(s);
+            CheckThought(s,"buscar el botiquín en el armario");
+            Walk(s,s.World.Cell(s.Room,4,11));
+            CaptureHere(s,"piso-2-noche-botiquin.png");
+            s.Player.Interact();
+            Check(!GameObject.Find("Botiquín portátil"),"Taking the medical kit removes it from the cabinet");
+            if(TestSave){
+                Check(s.SaveGame(),"The collected medical kit can be saved");
+                loadingSave=true;s.Menu();
+            }
+        });
+        steps.Enqueue(s=>{
+            var backpack=OpenBackpack();
+            CheckBackpackItem(backpack,"Botiquín portátil","Nuria","utileria-maletin-clinico");
+            CloseBackpack(backpack);
+            Use(s,s.World.Cell(s.Room,7,10));
+            Check(s.DialogueOpen,"The medical kit lets Yamil help Nuria");
+            FinishDialogue(s);
+            Walk(s,s.World.UpperInteriorExit(s.Room));
+            WaitForEscort("Nuria");
+        });
+        steps.Enqueue(s=>{
+            s.Player.Interact();
+            Check(s.Crossing,"Nuria follows through the simulation room door");
+        });
+        steps.Enqueue(s=>{
+            Check(s.Room==ForFloor(2,true)&&GameObject.Find("Nuria"),"Nuria is present in the clinical hall");
+            Walk(s,s.World.Cell(s.Room,23,7));
+            if(TestSave){
+                Check(s.SaveGame(),"Nuria's active escort can be saved in the hall");
+                loadingSave=true;s.Menu();
+            }
+        });
+        steps.Enqueue(s=>WaitForEscort("Nuria"));
+        steps.Enqueue(s=>{
+            CaptureHere(s,"piso-2-noche-refugio.png");
+            s.Player.Interact();
+            Check(s.DialogueOpen,"Yamil radios the brigade after both reach the illuminated refuge");
+            FinishDialogue(s);
+        });
+        foreach(var (room,file) in new[]{("Cocina de prácticas","cocina"),("Histología y Fisiología","histologia")})
+        {
+            steps.Enqueue(s=>UseCampaignDoor(s,room));
+            steps.Enqueue(s=>{
+                Check(Title(s.Room)==room,"The alternate night passage reaches "+room);
+                Walk(s,s.World.Entry(s.Room)+Vector2.up*4);
+                CaptureHere(s,"piso-2-noche-"+file+".png");
+                LeaveCampaignRoom(s);
+            });
+        }
+    }
+
     static void QueueEscortRescues()
     {
         foreach(var (floor,room,offsetX,refugeX,refugeY,person) in new[]{
-            (1,"Posgrado",-2,26,5,"Inés"),(4,"Cámara Gesell",-2,4,5,"Marcos"),(5,"Aula de grupos",2,26,6,"Elena")
+            (1,"Posgrado",-2,26,5,"Inés"),(4,"Cámara Gesell",-2,4,5,"Marcos"),(5,"Aula de grupos",2,8,14,"Elena")
         })
         {
             steps.Enqueue(s=>LiftTo(s,floor));
@@ -748,6 +1262,7 @@ public static class BackfranzPlayableSmoke
             });
             steps.Enqueue(s=>{
                 if(floor==1)CaptureHere(s,"20-rescate-al-refugio.png");
+                if(floor==5)CaptureHere(s,"piso-5-noche-elena.png");
                 s.Player.Interact();
                 Check(s.DialogueOpen,"Yamil can radio the brigade once "+person+" reaches safety");
                 FinishDialogue(s);
@@ -788,6 +1303,7 @@ public static class BackfranzPlayableSmoke
         steps.Enqueue(s=>{
             Use(s,s.World.Cell(DarkTop,15,9));
             Check(!GameObject.Find("Mecanismo de escape"),"The investigation desk requires testimony before accepting a verdict");
+            CaptureHere(s,"piso-6-noche-investigacion.png");
         });
         current=6;
         foreach(var (floor,room,speaker) in new[]{
@@ -838,20 +1354,52 @@ public static class BackfranzPlayableSmoke
         });
         steps.Enqueue(s=>{
             Check(s.Room==Basement,"Maintenance elevator arrives in the west basement");
+            CheckThought(s,"Tengo que buscar un fusible");
             Check(s.World.FindRoute(s.Player.Position,s.World.Lift(Basement)).Count==0,
                 "Basement grate prevents leaving before restoring power");
+            var west=s.World.Cell(Basement,16,8);
+            var east=s.World.Cell(Basement,18,8);
+            Check(!s.World.HasLineOfSight(west,east,false)&&GameObject.Find("Reja de mantenimiento")&&
+                !GameObject.Find("Luz de emergencia de mantenimiento"),"The closed grate and unpowered lights match the blocked crossing");
+            Check(s.World.CanStand(s.World.PowerPanel)&&!s.World.CanStand(s.World.PowerPanel+Vector2.up*.71f),
+                "Yamil can reach the controls without walking through the electrical cabinet");
+            Walk(s,west);
+            CaptureHere(s,"subsuelo-reja-sin-energia.png");
             Use(s,s.World.Cell(Basement,6,11));
             Use(s,s.World.PowerPanel);
             Check(!s.World.Power,"Emergency panel requires the fuse");
             Use(s,s.World.Fuse);
             Check(s.HasFuse,"Fuse can be recovered in the basement");
+            CheckThought(s,"Ya tengo el fusible");
             CaptureHere(s,"08-subsuelo-backfranz.png");
+            if(TestSave){
+                Check(s.SaveGame(),"The collected fuse can be saved");
+                loadingSave=true;s.Menu();
+            }
+        });
+        steps.Enqueue(s=>{
+            Check(s.Room==Basement&&s.HasFuse&&!s.World.Power,"A collected fuse remains available before use");
+            var backpack=OpenBackpack();
+            CheckBackpackItem(backpack,"Fusible","devolverle la corriente","bloque-a-item-fusible");
+            CaptureHere(s,"mochila-fusible.png");
+            CloseBackpack(backpack);
             Use(s,s.World.PowerPanel);
             Check(s.World.Power,"Fuse powers the basement gate");
+            var west=s.World.Cell(Basement,16,8);
+            var east=s.World.Cell(Basement,18,8);
+            Check(s.World.HasLineOfSight(west,east,false)&&!GameObject.Find("Reja de mantenimiento")&&
+                GameObject.Find("Luz de emergencia de mantenimiento"),"Power opens the passage and turns on the emergency route");
+            Walk(s,east);
+            CaptureHere(s,"subsuelo-reja-abierta.png");
+            backpack=OpenBackpack();
+            CheckBackpackItem(backpack,"Fusible","Ya lo instalé","bloque-a-item-fusible");
+            CloseBackpack(backpack);
+            CheckThought(s,"revisar las tres lecturas de presión");
             Use(s,s.World.Cell(Basement,24,10));
             Check(!GameObject.Find("Mecanismo de escape"),"Regulator requires all three physical readings");
             Use(s,s.World.Cell(Basement,20,12));
             Use(s,s.World.Cell(Basement,27,10));
+            CheckThought(s,"puedo calibrar el regulador");
             Use(s,s.World.Cell(Basement,24,10));
             var panel=GameObject.Find("Mecanismo de escape");
             Check(panel,"Regulator can be calibrated after visiting the gauges");
@@ -860,6 +1408,16 @@ public static class BackfranzPlayableSmoke
             Check(Time.timeScale==0,"Incorrect pressure is rejected");
             Array.Find(buttons,b=>b.name=="Opción 1").onClick.Invoke();
             Check(Time.timeScale==1,"Correct pressure enables the gate");
+            CaptureHere(s,"subsuelo-bombas-y-regulador.png");
+            if(TestSave){
+                Check(s.SaveGame(),"A powered and calibrated basement can be saved");
+                loadingSave=true;s.Menu();
+            }
+        });
+        steps.Enqueue(s=>{
+            Check(s.Room==Basement&&s.World.Power&&GameObject.Find("Luz de emergencia de mantenimiento")&&
+                GameObject.Find("Regulador de emergencia").GetComponent<SpriteRenderer>().color.g>.9f,
+                "Opening a save restores basement power, lights and regulator status");
             LiftTo(s,6);
         });
     }
@@ -902,6 +1460,7 @@ public static class BackfranzPlayableSmoke
 
     static void QueueAcousticRoute()
     {
+        steps.Enqueue(s=>CheckCampusRadio(s,"Busca las pistas de Streaming"));
         foreach(var (room,speaker) in new[]{("Streaming","Lina"),("Fotografía","Diego"),("Sala Mac","Hugo")})
         {
             steps.Enqueue(s=>UseCampaignDoor(s,room));
@@ -910,6 +1469,9 @@ public static class BackfranzPlayableSmoke
                 Use(s,s.World.Entry(s.Room)+new Vector2(2,1));
                 Check(s.DialogueOpen,"Acoustic witness explains a track");
                 FinishDialogue(s);
+                var file=room=="Sala Mac"?"mac":room=="Fotografía"?"fotografia":"streaming";
+                Walk(s,s.World.Entry(s.Room)+Vector2.up*4);
+                CaptureHere(s,"piso-3-noche-"+file+".png");
                 LeaveCampaignRoom(s);
             });
         }
@@ -1037,6 +1599,10 @@ public static class BackfranzPlayableSmoke
     {
         steps.Enqueue(s=>LiftTo(s,0));
         steps.Enqueue(s=>{
+            Walk(s,s.World.GalleryEntrance);
+            Check(GameObject.Find("Testigo de acceso a la galería").GetComponent<SpriteRenderer>().color.g>.9f,
+                "The gallery threshold turns green after the archive and acoustic channel");
+            CaptureHere(s,"galeria-acceso-planta-baja.png");
             Use(s,s.World.GalleryEntrance);
             Check(s.Crossing,"The acoustic channel and camera archive open the gallery door");
         });
@@ -1045,6 +1611,8 @@ public static class BackfranzPlayableSmoke
                 "The service gallery loads a walkable map and its roaming shadow");
             Check(s.World.Footing(ServiceGallery,s.Player.Position)==SurfaceSound.Metal,
                 "The gallery starts on a metal foothold");
+            Check(!s.World.HasLineOfSight(s.World.Cell(ServiceGallery,7,10),s.World.Cell(ServiceGallery,15,10),false),
+                "The equipment island separates the service catwalks");
             Check(Array.Exists(s.GetComponents<AudioSource>(),source=>source.clip&&source.clip.name=="ambiente-galeria"),
                 "The service gallery uses its own looping stereo ambience");
         });
@@ -1064,12 +1632,14 @@ public static class BackfranzPlayableSmoke
             Check(s.DialogueOpen,"Felipe can be reached using the refuge lights");
             FinishDialogue(s);
             Walk(s,s.World.GalleryLight(5));
+            CaptureHere(s,"galeria-ventilacion.png");
             Use(s,s.World.Cell(s.Room,27,13));
             s.SendMessage("RefreshHUD");
             Check(Array.Exists(UnityEngine.Object.FindObjectsByType<Text>(FindObjectsSortMode.None),
                 label=>label.text.Contains("antes de mover el mecanismo")),
                 "The mechanism requires the remaining witness");
             Walk(s,s.World.GalleryLight(6));
+            CaptureHere(s,"galeria-retorno.png");
             Use(s,s.World.Cell(s.Room,22,16));
             Check(s.DialogueOpen,"Celia is reachable at the far end");
             FinishDialogue(s);
@@ -1124,10 +1694,93 @@ public static class BackfranzPlayableSmoke
                     Check(GameObject.Find("Estudiante de Derecho"),"Scheduled student is visible inside the correct classroom");
                 if(!IsDark(interior))
                 {
+                    if(name=="Baños")
+                    {
+                        Vector2 sink=s.World.Cell(interior,10,5);
+                        Check(GameObject.Find("utileria-base-lavamanos")&&GameObject.Find("Lavamanos")&&
+                            Vector2.Distance(GameObject.Find("Dispensador del lavamanos").transform.position,sink)<1.1f,
+                            "The washbasin and dispenser are attached to the same fixture");
+                        Check(Array.FindAll(s.World.GetComponentsInChildren<SpriteRenderer>(),view=>view.name=="Separador de cabina").Length==6,
+                            "The toilet partitions extend to the rear wall");
+                        Walk(s,s.World.Cell(interior,9,4));
+                        s.SendMessage("RefreshHUD");
+                        var action=GameObject.Find("Interacción");
+                        Check(!action||!action.GetComponentInChildren<Text>().text.Contains("Recoger"),
+                            "The bathroom fixture does not offer a pickup");
+                        CaptureHere(s,"audit-banos-lavamanos.png");
+                    }
+                    if(name=="Sala Mac")
+                    {
+                        var art=s.World.GetComponentsInChildren<SpriteRenderer>();
+                        Check(Array.FindAll(art,view=>view.name=="Monitor de la mesa").Length==4&&
+                              Array.FindAll(art,view=>view.name=="bloque-a-mesa-registro").Length==2,
+                            "The computer displays have two solid workbenches");
+                    }
                     bool captureRoom=name=="Cocina de prácticas"||name=="Laboratorio PC"||name=="Sala de lectura";
                     Walk(s,s.World.Entry(interior)+Vector2.up*(captureRoom?4:2));
                     if(captureRoom||name=="Baños")
                         CaptureHere(s,"escenografia-"+interior+".png");
+                    if(Floor(interior)==1)
+                    {
+                        string file=name=="Caja"?"caja":name=="Posgrado"?"posgrado":"direccion";
+                        Walk(s,s.World.Entry(interior)+Vector2.up*4);
+                        CaptureHere(s,"piso-1-dia-"+file+".png");
+                    }
+                if(Floor(interior)==2)
+                    {
+                        string file=name=="Cocina de prácticas"?"cocina":name=="Sala de Simulación"?"simulacion":"histologia";
+                        Walk(s,s.World.Entry(interior)+Vector2.up*4);
+                        CaptureHere(s,"piso-2-dia-"+file+".png");
+                    }
+                    if(Floor(interior)==3)
+                    {
+                        if(name=="Streaming")
+                        {
+                            Check(GameObject.Find("Radio de mano"),"A radio is available beside the Streaming desk during induction");
+                            Walk(s,s.World.Cell(s.Room,4,9));
+                            s.SendMessage("RefreshHUD");
+                            var action=GameObject.Find("Interacción").GetComponentInChildren<Text>();
+                            Check(action.text.Contains("Recoger · Radio de mano")&&action.color.r>.99f&&action.color.b<.60f,
+                                "The pickup action is highlighted and names the actual collectible");
+                            CaptureHere(s,"hud-recoger-radio.png");
+                            s.Player.Interact();
+                            Check(!GameObject.Find("Radio de mano"),"Collecting the radio removes it from the desk");
+                            CheckCampusRadio(s,"Prueba de sonido");
+                        }
+                        var file=name switch{"Laboratorio PC"=>"pc","Sala Mac"=>"mac","Streaming"=>"streaming",
+                            "Fotografía"=>"fotografia",_=>"sonido"};
+                        Walk(s,s.World.Entry(interior)+Vector2.up*4);
+                        CaptureHere(s,"piso-3-dia-"+file+".png");
+                    }
+                    if(Floor(interior)==4)
+                    {
+                        if(name=="Aula 4A")
+                        {
+                            Check(GameObject.Find("Tiza blanca"),"Chalk is visible in Aula 4A during induction");
+                            Walk(s,s.World.Cell(s.Room,3,9));
+                            CaptureHere(s,"piso-4-dia-tiza.png");
+                            s.Player.Interact();
+                            Check(!GameObject.Find("Tiza blanca"),"Picking up the chalk clears the classroom table");
+                        }
+                        var file=name=="Sala Jurídica"?"juridica":name=="Cámara Gesell"?"gesell":"aula";
+                        Walk(s,s.World.Entry(interior)+Vector2.up*4);
+                        CaptureHere(s,"piso-4-dia-"+file+".png");
+                    }
+                    if(Floor(interior)==5)
+                    {
+                        if(name=="Taller")
+                        {
+                            Check(GameObject.Find("Cuña de goma"),"The wedge is present in the daytime workshop");
+                            Check(GameObject.Find("Cable de extensión"),"The extension cable is available during induction");
+                        }
+                        Walk(s,s.World.Entry(interior)+Vector2.up*4);
+                        CaptureHere(s,name=="Taller"?"piso-5-dia-taller.png":"piso-5-dia-aula-de-grupos.png");
+                    }
+                    if(Floor(interior)==6)
+                    {
+                        Walk(s,s.World.Entry(interior)+Vector2.up*4);
+                        CaptureHere(s,"piso-6-dia-sala-de-lectura.png");
+                    }
                     CheckInductionInRoom(s,name);
                 }
                 Use(s,s.World.UpperInteriorExit(s.Room));
@@ -1160,16 +1813,30 @@ public static class BackfranzPlayableSmoke
             Use(s,point);
             Check(s.DialogueOpen,"First-day guide gives instructions in "+name);
             FinishDialogue(s);
+            CheckThought(s,name=="Sala de lectura"?"entregar mi ficha":"completar la actividad");
             return;
         }
         switch(name)
         {
             case "Caja":SubmitInductionActivity(s,point,"Ventanilla de turnos",1);break;
-            case "Histología y Fisiología":SubmitInductionActivity(s,point,"Registro de bandejas",2);break;
-            case "Sonido":SubmitInductionActivity(s,point,"Prueba de micrófono",0);break;
-            case "Aula 4A":SubmitInductionActivity(s,point,"Lista de práctica",1);break;
+            case "Histología y Fisiología":SubmitInductionActivity(s,s.World.Cell(s.Room,8,7),"Registro de bandejas",2);break;
+            case "Sonido":SubmitInductionActivity(s,s.World.Cell(s.Room,6,7),"Prueba de micrófono",0);break;
+            case "Aula 4A":SubmitInductionActivity(s,s.World.Cell(s.Room,5,6),"Lista de práctica",1);break;
             case "Taller":SubmitInductionActivity(s,point,"Casillero de herramientas",2);break;
         }
+    }
+
+    static void CheckCampusRadio(SessionFlow s,string message)
+    {
+        var backpack=OpenBackpack();
+        CheckBackpackItem(backpack,"Radio de mano","canal de emergencia","utileria-radio-mano");
+        var listen=Array.Find(backpack.GetComponentsInChildren<Button>(),button=>button.name=="Escuchar");
+        Check(listen&&listen.IsInteractable(),"The radio can be tuned from its backpack entry");
+        listen.onClick.Invoke();
+        Check(Array.Exists(backpack.GetComponentsInChildren<Text>(),label=>label.text.Contains(message)),
+            "The radio plays guidance for the current phase");
+        if(IsDark(s.Room))CaptureHere(s,message=="Sonido está cerrado"?"piso-3-noche-radio.png":"piso-3-noche-radio-red.png");
+        CloseBackpack(backpack);
     }
 
     static void SubmitInductionActivity(SessionFlow s,Vector2 point,string station,int answer)
@@ -1202,6 +1869,15 @@ public static class BackfranzPlayableSmoke
             });
             steps.Enqueue(s=>{
                 Check(s.Room==InteriorRoom(index,IsDark(hall))&&s.World.CanStand(s.Player.Position),"Separate playable interior: "+Title(s.Room));
+                if(!IsDark(hall)&&GroundDoors[index].Name=="Game Room"){
+                    Walk(s,s.World.Cell(s.Room,6,9));
+                    s.SendMessage("RefreshHUD");
+                    var detail=GameObject.Find("Control de la mesa");
+                    var action=GameObject.Find("Interacción");
+                    Check(detail&&(!action||!action.GetComponentInChildren<Text>().text.Contains("Recoger")),
+                        "The game controller is supported on the table and shows no pickup action");
+                    CaptureHere(s,"hud-control-decorativo.png");
+                }
                 if(IsDark(hall)&&GroundDoors[index].Name=="Game Room"){
                     Use(s,s.World.Entry(s.Room)+Vector2.up*2);
                     Check(s.DialogueOpen,"Optional witness Nico can be spoken to in the altered Game Room");
@@ -1213,6 +1889,29 @@ public static class BackfranzPlayableSmoke
             });
             steps.Enqueue(s=>Check(s.Room==hall&&s.World.CanStand(s.Player.Position)&&Vector2.Distance(point,s.Player.Position)<1.2f,
                 "Return to matching door: "+GroundDoors[index].Name));
+            if(hall==Ground&&index==AuditoriumIndex)
+            {
+                int auditorium=InteriorRoom(index,false);
+                steps.Enqueue(s=>{
+                    Walk(s,s.World.Cell(Ground,7,12));
+                    CaptureHere(s,"02-pb-vestibulo-auditorio.png");
+                    Use(s,s.World.AuditoriumServiceDoor(Ground));
+                    Check(s.Crossing,"West service door opens to the side of the auditorium stage");
+                });
+                steps.Enqueue(s=>{
+                    Check(s.Room==auditorium&&s.World.CanStand(s.Player.Position)&&
+                        Vector2.Distance(s.Player.Position,s.World.AuditoriumServiceDoor(auditorium))<1.2f,
+                        "Auditorium service entrance lands beside the stage");
+                    CaptureHere(s,"02-pb-auditorio-escenario.png");
+                    Walk(s,s.World.Cell(auditorium,11,7));
+                    CaptureHere(s,"02-pb-auditorio-butacas.png");
+                    Use(s,s.World.AuditoriumServiceDoor(auditorium));
+                    Check(s.Crossing,"The side of the stage has a working service exit");
+                });
+                steps.Enqueue(s=>Check(s.Room==Ground&&s.World.CanStand(s.Player.Position)&&
+                    Vector2.Distance(s.Player.Position,s.World.AuditoriumServiceDoor(Ground))<1.2f,
+                    "Auditorium service exit returns to its own west corridor"));
+            }
         }
         steps.Enqueue(_=>next());
         foreach(var step in remaining)steps.Enqueue(step);
@@ -1300,13 +1999,24 @@ public static class BackfranzPlayableSmoke
                 }
                 awaitedEscort=null;
             }
+            if(auditoriumRetryDeadline>0)
+            {
+                if(Vector2.Distance(session.Player.Position,session.World.Entry(session.Room))>=.1f)
+                {
+                    if(EditorApplication.timeSinceStartup>=auditoriumRetryDeadline)
+                        throw new Exception("The auditorium presence did not trigger a retry");
+                    return;
+                }
+                auditoriumRetryDeadline=0;
+            }
             steps.Dequeue()(session);
         }catch(Exception e){Debug.LogException(e);Finish(1);}
     }
     static void Finish(int code){Debug.Log("PLAYABLE RESULT: "+checks+" checks, exit "+code);EditorApplication.update-=Tick;SessionState.SetBool("Backfranz.PlayableSmoke",false);EditorApplication.Exit(code);}
     static void Capture(string file)
     {
-        Directory.CreateDirectory("Docs/BloqueA/Capturas-PB");
+        string folder=Environment.GetEnvironmentVariable("BACKFRANZ_CAPTURE_DIR")??"Docs/BloqueA/Capturas-PB";
+        Directory.CreateDirectory(folder);
         var camera=Camera.main;
         bool temporaryCamera=!camera;
         if(temporaryCamera){
@@ -1322,7 +2032,7 @@ public static class BackfranzPlayableSmoke
         UnityEngine.Object.FindFirstObjectByType<SessionFlow>()?.SendMessage("LateUpdate");
         Canvas.ForceUpdateCanvases();camera.Render();RenderTexture.active=target;
         var texture=new Texture2D(1600,900,TextureFormat.RGB24,false);texture.ReadPixels(new Rect(0,0,1600,900),0,0);texture.Apply();
-        File.WriteAllBytes("Docs/BloqueA/Capturas-PB/"+file,texture.EncodeToPNG());camera.targetTexture=null;RenderTexture.active=previous;
+        File.WriteAllBytes(Path.Combine(folder,file),texture.EncodeToPNG());camera.targetTexture=null;RenderTexture.active=previous;
         foreach(var canvas in canvases){canvas.renderMode=RenderMode.ScreenSpaceOverlay;canvas.sortingOrder-=3000;}
         UnityEngine.Object.Destroy(texture);UnityEngine.Object.Destroy(target);
         if(temporaryCamera)UnityEngine.Object.Destroy(camera.gameObject);
