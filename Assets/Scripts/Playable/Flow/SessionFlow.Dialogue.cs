@@ -166,21 +166,25 @@ namespace Backfranz.Playable
             title.text="Primer día de inducción";
             arrivalTitle.SetActive(false);
 
-            var panel = Panel(safe, "Diálogo", new Vector2(.10f,.045f), new Vector2(.90f,.30f));
+            bool mobile=Application.isMobilePlatform;
+            var panel = Panel(safe, "Diálogo",
+                mobile?new Vector2(.04f,.035f):new Vector2(.10f,.045f),
+                mobile?new Vector2(.96f,.40f):new Vector2(.90f,.30f));
             dialoguePanel = panel.gameObject;
             dialoguePortrait = Icon(panel, "yamil-00", new Vector2(.025f,.14f), new Vector2(.13f,.84f));
             dialogueSpeaker = Label(panel, "Personaje", new Vector2(.15f,.68f), new Vector2(.96f,.92f), 27);
             dialogueSpeaker.color = new Color(1f,.73f,.39f);
             dialogueSpeaker.alignment = TextAnchor.MiddleLeft;
-            dialogueBody = Label(panel, "Texto", new Vector2(.15f,.30f), new Vector2(.96f,.68f), 26);
+            dialogueBody = Label(panel, "Texto", new Vector2(.15f,mobile?.39f:.30f), new Vector2(.96f,.68f), mobile?31:26);
             dialogueBody.alignment = TextAnchor.UpperLeft;
-            var button = Button(panel, "Continuar", new Vector2(.695f,.065f), new Vector2(.96f,.29f), Player.Interact, 20);
+            var button = Button(panel, "Continuar",
+                new Vector2(mobile?.60f:.695f,.065f), new Vector2(.96f,mobile?.36f:.29f), Player.Interact, mobile?29:20);
             dialogueAction = button.GetComponentInChildren<Text>();
             dialogueContinue=button.gameObject;
             var choices=Rect(panel,"Respuesta",Vector2.zero,Vector2.one);
             dialogueChoices=choices.gameObject;
-            acceptChoice=Button(choices,"Abrir el paso",new Vector2(.48f,.07f),new Vector2(.72f,.28f),()=>CloseDialogue(true),19);
-            Button(choices,"Ahora no",new Vector2(.73f,.07f),new Vector2(.96f,.28f),()=>CloseDialogue(false),19);
+            acceptChoice=Button(choices,"Abrir el paso",new Vector2(mobile?.28f:.48f,.07f),new Vector2(mobile?.62f:.72f,mobile?.36f:.28f),()=>CloseDialogue(true),mobile?27:19);
+            Button(choices,"Ahora no",new Vector2(mobile?.65f:.73f,.07f),new Vector2(.96f,mobile?.36f:.28f),()=>CloseDialogue(false),mobile?27:19);
             dialogueChoices.SetActive(false);
             dialoguePanel.SetActive(false);
         }

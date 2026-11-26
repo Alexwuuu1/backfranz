@@ -560,8 +560,8 @@ namespace Backfranz.Playable
             statusPanel=hud.gameObject;
             bool mobile=Application.isMobilePlatform;
             hudControls=Rect(hud,"Controles inferiores",
-                mobile?new Vector2(.25f,.018f):new Vector2(.02f,.018f),
-                mobile?new Vector2(.82f,.08f):new Vector2(.52f,.075f));
+                mobile?new Vector2(.29f,.018f):new Vector2(.02f,.018f),
+                mobile?new Vector2(.82f,.09f):new Vector2(.52f,.075f));
             controlsVisibility=hudControls.gameObject.AddComponent<CanvasGroup>();
             var areaName=Panel(hudControls,"Zona",Vector2.zero,new Vector2(.34f,1f));
             areaName.GetComponent<UnityEngine.UI.Image>().raycastTarget=false;
@@ -590,8 +590,12 @@ namespace Backfranz.Playable
             contrast.effectColor=new Color(.025f,.041f,.06f,.94f);
             contrast.effectDistance=new Vector2(2,-2);
             touch=Rect(safe,"Controles táctiles",Vector2.zero,Vector2.one).gameObject;
-            Direction(new Vector2(.025f,.095f),Vector2.left,90);Direction(new Vector2(.155f,.095f),Vector2.right,-90);Direction(new Vector2(.09f,.20f),Vector2.up,0);Direction(new Vector2(.09f,.015f),Vector2.down,180);
-            var interact=Button(touch.transform,"",new Vector2(.85f,.08f),new Vector2(.97f,.25f),Player.Interact);Icon(interact.transform,"interact",new Vector2(.15f,.15f),new Vector2(.85f,.85f));
+            Direction(new Vector2(.018f,.106f),Vector2.left,90);
+            Direction(new Vector2(.198f,.106f),Vector2.right,-90);
+            Direction(new Vector2(.108f,.176f),Vector2.up,0);
+            Direction(new Vector2(.108f,.024f),Vector2.down,180);
+            var interact=Button(touch.transform,"",new Vector2(.84f,.055f),new Vector2(.982f,.267f),Player.Interact);
+            Icon(interact.transform,"interact",new Vector2(.15f,.15f),new Vector2(.85f,.85f));
             touch.SetActive(Application.isMobilePlatform);
             liftPanel=Panel(safe,"Ascensor",new Vector2(.18f,.12f),new Vector2(.82f,.88f)).gameObject;
             liftTitle=Label(liftPanel.transform,"Título",new Vector2(.05f,.84f),new Vector2(.95f,.96f),34);
@@ -634,7 +638,7 @@ namespace Backfranz.Playable
         }
         void Direction(Vector2 anchor,Vector2 axis,float angle)
         {
-            var button=Button(touch.transform,"",anchor,anchor+new Vector2(.06f,.095f),null);
+            var button=Button(touch.transform,"",anchor,anchor+new Vector2(.081f,.138f),null);
             var icon=Icon(button.transform,"arrow-up",new Vector2(.18f,.18f),new Vector2(.82f,.82f));icon.rectTransform.localEulerAngles=new Vector3(0,0,angle);
             var direction=button.gameObject.AddComponent<TouchDirection>();direction.motor=Player;direction.direction=axis;
         }

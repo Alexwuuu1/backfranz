@@ -278,16 +278,24 @@ namespace Backfranz.Playable
 
         void CreateEscapePanel(Transform safe)
         {
-            var panel=Panel(safe,"Mecanismo de escape",new Vector2(.17f,.12f),new Vector2(.83f,.88f));
+            bool mobile=Application.isMobilePlatform;
+            var panel=Panel(safe,"Mecanismo de escape",
+                mobile?new Vector2(.035f,.035f):new Vector2(.17f,.12f),
+                mobile?new Vector2(.965f,.965f):new Vector2(.83f,.88f));
             escapePanel=panel.gameObject;
             escapeTitle=Label(panel,"Mecanismo",new Vector2(.06f,.84f),new Vector2(.94f,.96f),32);
-            escapeBody=Label(panel,"Pista y operación",new Vector2(.07f,.54f),new Vector2(.93f,.82f),25);
+            escapeBody=Label(panel,"Pista y operación",new Vector2(.07f,.54f),new Vector2(.93f,.82f),mobile?32:25);
             for(int i=0;i<escapeOptions.Length;i++){
-                int index=i;float y=.44f-i*.115f;
-                escapeOptions[i]=Button(panel,"Opción "+(i+1),new Vector2(.15f,y),new Vector2(.85f,y+.085f),
-                    ()=>ChooseEscapeOption(index),24);
+                int index=i;
+                float y=mobile?.419f-i*.132f:.44f-i*.115f;
+                escapeOptions[i]=Button(panel,"Opción "+(i+1),
+                    new Vector2(mobile?.08f:.15f,y),
+                    new Vector2(mobile?.92f:.85f,y+(mobile?.106f:.085f)),
+                    ()=>ChooseEscapeOption(index),mobile?34:24);
             }
-            Button(panel,"Cerrar",new Vector2(.35f,.055f),new Vector2(.65f,.143f),CloseEscapePanel,24);
+            Button(panel,"Cerrar",
+                mobile?new Vector2(.28f,.03f):new Vector2(.35f,.055f),
+                mobile?new Vector2(.72f,.133f):new Vector2(.65f,.143f),CloseEscapePanel,mobile?32:24);
             var keypad=Rect(panel,"Teclado Gesell",Vector2.zero,Vector2.one);
             escapeKeypad=keypad.gameObject;
             keypadDisplay=Label(keypad,"Hora ingresada",new Vector2(.19f,.43f),new Vector2(.81f,.53f),28);
