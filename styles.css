@@ -126,3 +126,23 @@ dialog::backdrop { background: #040709dd; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: 0s !important; }
 }
+.download-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: 1rem;
+}
+
+.download-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: clamp(1.25rem, 4vw, 2.25rem);
+  border: 1px solid #446167;
+  background: linear-gradient(160deg, #162a32, #0e1c25);
+}
+
+.download-card h3 { margin: 0; font-size: 1.5rem; }
+.download-card p { flex: 1; margin: .7rem 0 1.35rem; }
+.download-card .button { text-align: left; }
+.download-card small, .release-link { margin-top: .9rem; }
+.release-link { display: inline-block; text-decoration: underline; text-underline-offset: .2em; }
