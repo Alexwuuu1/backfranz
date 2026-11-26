@@ -56,13 +56,12 @@ La distribución de los ambientes es una adaptación para el videojuego. El reco
 
 ## Windows y Android
 
-Los ejecutables de esta revisión se generan desde Unity. Los enlaces de descarga se incorporarán cuando el equipo los suba a Google Drive.
+La [publicación Backfranz 1.0.0](https://github.com/Alexwuuu1/backfranz/releases/tag/v1.0.0) reúne los instalables y las sumas SHA-256. También se puede elegir plataforma en la [página del juego](https://alexwuuu1.github.io/backfranz/#descargas).
 
-| Entregable | Estado de la revisión |
+| Plataforma | Descarga e inicio |
 |---|---|
-| Windows x64 | Compilación y prueba del ejecutable pendientes de registrar |
-| Android APK | Compilación y prueba en dispositivo o emulador pendientes de registrar |
-| Enlaces de Google Drive | Pendientes de proporcionar por el equipo |
+| Windows x64 | [Descargar el ZIP](https://github.com/Alexwuuu1/backfranz/releases/download/v1.0.0/Backfranz-Windows-x64.zip), extraer la carpeta completa y abrir `Backfranz.exe`. |
+| Android | [Descargar el APK](https://github.com/Alexwuuu1/backfranz/releases/download/v1.0.0/Backfranz-Android.apk) e instalarlo en un dispositivo con Android 8.0 o posterior. Los controles táctiles y las opciones de las actividades se ampliaron para jugar en horizontal. |
 
 Para Windows, usar `Tools → Backfranz → Exportar → Windows x64`. El exportador genera `../Builds/Backfranz-Jugable/Backfranz.exe` respecto a la raíz del proyecto. Distribuir en ZIP la carpeta completa, incluidos `Backfranz_Data`, `UnityPlayer.dll` y los demás archivos generados.
 
